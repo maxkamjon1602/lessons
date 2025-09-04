@@ -24,7 +24,7 @@
     const m=new THREE.Mesh(geo,mat); m.position.set(x,y,0); scene.add(m); return m;
   }
 
-  addSquare(80,80,120,0xffffff);
+  addSquare(80,100,120,0xffffff);
   addTriangle(240,100,140,120,0x00ccff);
 
   function tick(){ const need=canvas.width!==Math.floor(canvas.clientWidth*devicePixelRatio)||
