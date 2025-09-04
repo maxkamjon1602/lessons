@@ -21,13 +21,14 @@ We build it up step by step:
 
 | Step | Folder | What it Teaches |
 |------|--------|-----------------|
+| 00   | [`full-demo`](01-lesson/index.html) | Final code of this lesson. |
 | 01   | [`01-renderer`](01-lesson/step-1.html) | Create a Three.js renderer and clear the screen. |
-| 02   | [`02-ortho-camera`](lesson-01-increments/02-ortho-camera) | Use an **orthographic camera** in pixel units. |
-| 03   | [`03-square`](lesson-01-increments/03-square) | Draw your first white square. |
-| 04   | [`04-triangle`](lesson-01-increments/04-triangle) | Add a custom triangle shape. |
-| 05   | [`05-toggles`](lesson-01-increments/05-toggles) | Add checkboxes to show/hide shapes. |
-| 06   | [`06-rotate-z`](lesson-01-increments/06-rotate-z) | Spin shapes around the **Z axis**. |
-| 07   | [`07-rotate-y`](lesson-01-increments/07-rotate-y) | Flip shapes in depth using the **Y axis**. |
+| 02   | [`02-ortho-camera`](01-lesson/step-2.html) | Use an **orthographic camera** in pixel units. |
+| 03   | [`03-square`](01-lesson/step-3.html) | Draw your first white square. |
+| 04   | [`04-triangle`](01-lesson/step-4.html) | Add a custom triangle shape. |
+| 05   | [`05-toggles`](01-lesson/step-5.html) | Add checkboxes to show/hide shapes. |
+| 06   | [`06-rotate-z`](01-lesson/step-6.html) | Spin shapes around the **Z axis**. |
+| 07   | [`07-rotate-y`](01-lesson/step-7.html) | Flip shapes in depth using the **Y axis**. |
 
 ---
 
