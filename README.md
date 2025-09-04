@@ -21,7 +21,7 @@ We build it up step by step:
 
 | Step | Folder | What it Teaches |
 |------|--------|-----------------|
-| 01   | [`01-renderer`](lesson-01-increments/01-renderer) | Create a Three.js renderer and clear the screen. |
+| 01   | [`01-renderer`](01-lesson/step-1.html) | Create a Three.js renderer and clear the screen. |
 | 02   | [`02-ortho-camera`](lesson-01-increments/02-ortho-camera) | Use an **orthographic camera** in pixel units. |
 | 03   | [`03-square`](lesson-01-increments/03-square) | Draw your first white square. |
 | 04   | [`04-triangle`](lesson-01-increments/04-triangle) | Add a custom triangle shape. |
