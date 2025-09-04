@@ -1,6 +1,6 @@
 # 🌌 uz learn try — Interactive Coding Lessons
 
-Welcome to **uz learn try** — the companion codebase for my [YouTube channel](https://youtube.com/) 🎥.  
+Welcome to **uz learn try** — the companion codebase for my [YouTube channel](https://www.youtube.com/@uzbeksniperyt) 🎥.  
 This repository contains **step-by-step lessons** that teach **3D graphics, interactivity, and creative coding** using [Three.js](https://threejs.org/) and modern web tech.
 
 ---
