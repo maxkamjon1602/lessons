@@ -12,11 +12,4 @@ This lesson builds on Lesson 1 and introduces **THREE.Group** for hierarchical t
 7. **Toggles: Group vs Items** — buttons to control group vs item rotations separately.
 
 ## Run
-Serve the folder with any static server and open each step by path, e.g.:
-
-```
-python -m http.server 5173
-# http://localhost:5173/lesson-02-increments/01-renderer/
-# http://localhost:5173/lesson-02-increments/02-shapes/
-# ...
-```
+All html files can be run with normal browsers.
