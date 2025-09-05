@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Lesson 4 — Step 06 (Rotating 3D with Pairs)</title>
+  <style>
+    html,body{margin:0;height:100%;background:#0f1117;color:#e6e6e6;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+    canvas{display:block;width:100%;height:100%}
+    #controls{position:absolute;top:10px;left:10px;display:flex;gap:10px;background:rgba(0,0,0,.5);padding:8px 10px;border-radius:8px;font-size:14px;align-items:center}
+    #controls button,#controls label{cursor:pointer}
+    #controls button{background:#1a1d2b;color:#e6e6e6;border:1px solid #444;border-radius:6px;padding:4px 10px}
+    #controls button:hover{background:#2d3144}
+    #hint{position:absolute;bottom:10px;left:10px;font-size:12px;color:#9aa4b2;background:rgba(0,0,0,.35);padding:6px 8px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button id="btn-cam">Camera: PERSPECTIVE</button>
+    <label><input id="cb-square" type="checkbox" checked> Square/Cube</label>
+    <label><input id="cb-tri" type="checkbox" checked> Triangle/Pyramid</label>
+    <button id="btn-rot">Rotate 3D: ON</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div id="hint">Step 06: Rotation runs only in Perspective; Ortho shows static 2D</div>
+
+  <script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+  // renderer
+  const canvas = document.getElementById('c');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setClearColor(0x0f1117, 1);
+
+  // scene
+  const scene = new THREE.Scene();
+
+  // cameras (centered)
+  let cam = makePerspective();
+  function makeOrtho(){
+    const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+    const ocam = new THREE.OrthographicCamera(-w/2, w/2, h/2, -h/2, 0.1, 5000);
+    ocam.position.set(0,0,1000); ocam.lookAt(0,0,0); ocam.updateProjectionMatrix();
+    return ocam;
+  }
+  function makePerspective(){
+    const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+    const pcam = new THREE.PerspectiveCamera(45, w/h, 0.1, 5000);
+    pcam.position.set(0,0,800); pcam.lookAt(0,0,0); pcam.updateProjectionMatrix();
+    return pcam;
+  }
+
+  // groups
+  const group2D = new THREE.Group(), group3D = new THREE.Group();
+  scene.add(group2D, group3D);
+
+  // helpers
+  function addSquare(cx,cy,size,color){
+    const g=new THREE.PlaneGeometry(size,size);
+    const m=new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide});
+    const mesh=new THREE.Mesh(g,m); mesh.position.set(cx,cy,0); return mesh;
+  }
+  function addTriangle(cx,cy,w,h,color){
+    const s=new THREE.Shape(); s.moveTo(0,-h/2); s.lineTo(-w/2,h/2); s.lineTo(w/2,h/2); s.closePath();
+    const g=new THREE.ShapeGeometry(s);
+    const m=new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide});
+    const mesh=new THREE.Mesh(g,m); mesh.position.set(cx,cy,0); return mesh;
+  }
+  function addCube(cx,cy,size){
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(size,size,size), new THREE.MeshNormalMaterial());
+    mesh.position.set(cx,cy,0); return mesh;
+  }
+  function addPyramid(cx,cy,base,height){
+    const mesh=new THREE.Mesh(new THREE.ConeGeometry(base/2,height,4), new THREE.MeshNormalMaterial());
+    mesh.position.set(cx,cy,0); mesh.rotation.y=Math.PI/4; return mesh;
+  }
+
+  // build pairs
+  const square   = addSquare(-220,0,160,0xffffff);
+  const triangle = addTriangle( 220,0,180,160,0x00ccff);
+  group2D.add(square, triangle);
+
+  const cube     = addCube( -220,0,160);
+  const pyramid  = addPyramid( 220,0,180,200);
+  cube.position.z = -80; pyramid.position.z = 40;
+  group3D.add(cube, pyramid);
+
+  // UI
+  const btnCam   = document.getElementById('btn-cam');
+  const cbSquare = document.getElementById('cb-square');
+  const cbTri    = document.getElementById('cb-tri');
+  const btnRot   = document.getElementById('btn-rot');
+  let rotate3D = true;
+  btnRot.addEventListener('click', ()=>{ rotate3D = !rotate3D; btnRot.textContent = `Rotate 3D: ${rotate3D?'ON':'OFF'}`; });
+
+  function syncVisibility(){
+    const persp = cam.isPerspectiveCamera === true;
+    group2D.visible = !persp; group3D.visible = persp;
+    square.visible   = !persp && cbSquare.checked;
+    triangle.visible = !persp && cbTri.checked;
+    cube.visible     =  persp && cbSquare.checked;
+    pyramid.visible  =  persp && cbTri.checked;
+  }
+
+  btnCam.addEventListener('click', ()=>{
+    cam = cam.isPerspectiveCamera ? makeOrtho() : makePerspective();
+    btnCam.textContent = `Camera: ${cam.isPerspectiveCamera ? 'PERSPECTIVE' : 'ORTHO'}`;
+    syncVisibility();
+  });
+  cbSquare.addEventListener('change', syncVisibility);
+  cbTri.addEventListener('change', syncVisibility);
+
+  function resize(){
+    const need = canvas.width!==Math.floor(canvas.clientWidth*devicePixelRatio) ||
+                 canvas.height!==Math.floor(canvas.clientHeight*devicePixelRatio);
+    if (need){ renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+               cam = cam.isPerspectiveCamera ? makePerspective() : makeOrtho();
+               syncVisibility(); }
+  }
+  addEventListener('resize', resize);
+  syncVisibility();
+
+  function tick(){
+    resize();
+    if (rotate3D && cam.isPerspectiveCamera){
+      cube.rotation.x += 0.013; cube.rotation.y += 0.017;
+      pyramid.rotation.y += 0.02;
+    }
+    renderer.render(scene, cam);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Lesson 4 — Step 04 (Z Depth Centered)</title>
+<style>
+  html,body{margin:0;height:100%;background:#0f1117;color:#e6e6e6;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+  canvas{display:block;width:100%;height:100%}
+  #controls{position:absolute;top:10px;left:10px;display:flex;gap:10px;background:rgba(0,0,0,.5);padding:8px 10px;border-radius:8px;font-size:14px;align-items:center}
+  #controls button,#controls label{cursor:pointer}
+  #controls button{background:#1a1d2b;color:#e6e6e6;border:1px solid #444;border-radius:6px;padding:4px 10px}
+  #controls button:hover{background:#2d3144}
+  #hint{position:absolute;bottom:10px;left:10px;font-size:12px;color:#9aa4b2;background:rgba(0,0,0,.35);padding:6px 8px;border-radius:6px}
+</style>
+</head><body>
+<div id="controls"><button id="btn-cam">Camera: PERSPECTIVE</button></div>
+<canvas id="c"></canvas>
+<div id="hint">Step 04: Add Z depth: triangle closer (z=+50), square farther (z=-200)</div>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x0f1117, 1);
+
+const scene = new THREE.Scene();
+
+// --- Cameras: centered world coords ---
+let cam = makeOrtho();
+function makeOrtho(){
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+  const ocam = new THREE.OrthographicCamera(-w/2, w/2, h/2, -h/2, 0.1, 5000);
+  ocam.position.set(0,0,1000);
+  ocam.lookAt(0,0,0);
+  ocam.updateProjectionMatrix();
+  return ocam;
+}
+function makePerspective(){
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+  const fov = 45;
+  const pcam = new THREE.PerspectiveCamera(fov, w/h, 0.1, 5000);
+  pcam.position.set(0,0,800);
+  pcam.lookAt(0,0,0);
+  pcam.updateProjectionMatrix();
+  return pcam;
+}
+
+function resize(){
+  const need = canvas.width!==Math.floor(canvas.clientWidth*devicePixelRatio) ||
+               canvas.height!==Math.floor(canvas.clientHeight*devicePixelRatio);
+  if (need) {
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    cam = (cam.isPerspectiveCamera) ? makePerspective() : makeOrtho();
+  }
+}
+
+// --- 2D Shapes (centered) ---
+function addSquare(centerX,centerY,size,color){
+  const g=new THREE.PlaneGeometry(size,size);
+  const m=new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(g,m);
+  mesh.position.set(centerX, centerY, 0);
+  mesh.userData={type:'square',size};
+  return mesh;
+}
+function addTriangle(centerX,centerY,w,h,color){
+  // build triangle around its local center
+  const s=new THREE.Shape();
+  s.moveTo(0, -h/2);
+  s.lineTo(-w/2, h/2);
+  s.lineTo( w/2, h/2);
+  s.closePath();
+  const g=new THREE.ShapeGeometry(s);
+  const m=new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(g,m);
+  mesh.position.set(centerX, centerY, 0);
+  mesh.userData={type:'triangle',w,h};
+  return mesh;
+}
+
+// --- 3D Models ---
+function addCube(centerX,centerY,size){
+  const g = new THREE.BoxGeometry(size,size,size);
+  const m = new THREE.MeshNormalMaterial();
+  const mesh = new THREE.Mesh(g,m);
+  mesh.position.set(centerX,centerY,0);
+  return mesh;
+}
+function addPyramid(centerX,centerY,base, height){
+  const g = new THREE.ConeGeometry(base/2, height, 4); // 4 sides => pyramid
+  const m = new THREE.MeshNormalMaterial();
+  const mesh = new THREE.Mesh(g,m);
+  mesh.position.set(centerX,centerY,0);
+  mesh.rotation.y = Math.PI/4; // align a face forward
+  return mesh;
+}
+
+
+const square = addSquare(-200,0,160,0xffffff);
+const triangle = addTriangle(200,0,180,160,0x00ccff);
+square.position.z = -200;   // farther
+triangle.position.z =  50;  // closer
+scene.add(square); scene.add(triangle);
+
+cam = makePerspective();
+const btn = document.getElementById('btn-cam');
+btn.addEventListener('click', ()=>{
+  const wasPersp = cam.isPerspectiveCamera;
+  cam = wasPersp ? makeOrtho() : makePerspective();
+  btn.textContent = `Camera: ${cam.isPerspectiveCamera ? 'PERSPECTIVE' : 'ORTHO'}`;
+});
+function tick(){ resize(); renderer.render(scene, cam); requestAnimationFrame(tick); }
+requestAnimationFrame(tick);
+
+addEventListener('resize', resize);
+</script>
+</body></html>

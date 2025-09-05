@@ -1,0 +1,118 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Lesson 3 — Step 06 (Hover Highlight)</title>
+<style>
+  html,body{margin:0;height:100%;background:#0f1117;color:#e6e6e6;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+  canvas{display:block;width:100%;height:100%}
+  #controls{position:absolute;top:10px;left:10px;display:flex;gap:12px;background:rgba(0,0,0,.5);padding:6px 10px;border-radius:8px;font-size:14px}
+  #controls button, #controls label, #controls input, #controls select{cursor:pointer}
+  #controls button{background:#1a1d2b;color:#e6e6e6;border:1px solid #444;border-radius:6px;padding:4px 10px}
+  #controls button:hover{background:#2d3144}
+  #hint{position:absolute;bottom:10px;left:10px;font-size:12px;color:#9aa4b2;background:rgba(0,0,0,.35);padding:6px 8px;border-radius:6px}
+</style>
+</head><body>
+<div id="controls"><span>Hover shapes — they highlight</span></div>
+<canvas id="c"></canvas>
+<div id="hint">Step 06: Mouse hover changes color</div>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x0f1117, 1);
+
+const scene = new THREE.Scene();
+let cam = makeOrtho();
+function makeOrtho() { 
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+  const ocam = new THREE.OrthographicCamera(0, w, 0, h, -500, 500);
+  ocam.position.z = 200; ocam.updateProjectionMatrix(); return ocam;
+}
+function resize() {
+  const need = canvas.width!==Math.floor(canvas.clientWidth*devicePixelRatio) ||
+               canvas.height!==Math.floor(canvas.clientHeight*devicePixelRatio);
+  if (need) { renderer.setSize(canvas.clientWidth, canvas.clientHeight, false); cam = makeOrtho(); }
+}
+
+// Shapes (same APIs as L1/L2)
+function addSquare(x,y,size,color){
+  const g=new THREE.PlaneGeometry(size,size);
+  const m=new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(g,m);
+  // center offset so (x,y) acts like top-left at creation time
+  mesh.position.set(x+size/2, y+size/2, 0);
+  mesh.userData={type:'square',size};
+  return mesh;
+}
+function addTriangle(x,y,w,h,color){
+  const s=new THREE.Shape(); s.moveTo(w/2,0); s.lineTo(0,h); s.lineTo(w,h); s.closePath();
+  const g=new THREE.ShapeGeometry(s);
+  const m=new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(g,m);
+  // triangle is authored in local 0..w,0..h so (x,y) is top-left
+  mesh.position.set(x, y, 0);
+  mesh.userData={type:'triangle',w,h};
+  return mesh;
+}
+
+// coordinate helpers
+function getMouseScenePos(e){
+  const r = canvas.getBoundingClientRect();
+  const x = (e.clientX - r.left);
+  const y = (e.clientY - r.top);
+  return {x,y};
+}
+
+const sqSize=120, triW=140, triH=120;
+const square = addSquare(120,120,sqSize,0xffffff);
+const triangle = addTriangle(360,160,triW,triH,0x00ccff);
+scene.add(square); scene.add(triangle);
+
+const COLOR_SQ = 0xffffff, COLOR_SQ_HOVER=0xffd166;
+const COLOR_TR = 0x00ccff, COLOR_TR_HOVER=0x50fa7b;
+
+function isPointInSquare(px,py,mesh){
+  const half = mesh.userData.size/2;
+  const left = mesh.position.x - half;
+  const top  = mesh.position.y - half;
+  return px>=left && px<=left+mesh.userData.size && py>=top && py<=top+mesh.userData.size;
+}
+function isPointInTriangle(px,py,mesh){
+  // convert point into triangle's local space where triangle spans 0..w, 0..h
+  const lx = px - mesh.position.x;
+  const ly = py - mesh.position.y;
+  if (lx<0 || ly<0 || lx>mesh.userData.w || ly>mesh.userData.h) return false;
+  // Triangle vertices: A=(w/2,0), B=(0,h), C=(w,h)
+  const Ax=mesh.userData.w/2, Ay=0;
+  const Bx=0, By=mesh.userData.h;
+  const Cx=mesh.userData.w, Cy=mesh.userData.h;
+  // Barycentric technique
+  const v0x=Cx-Ax, v0y=Cy-Ay;
+  const v1x=Bx-Ax, v1y=By-Ay;
+  const v2x=lx-Ax, v2y=ly-Ay;
+  const dot00=v0x*v0x+v0y*v0y;
+  const dot01=v0x*v1x+v0y*v1y;
+  const dot02=v0x*v2x+v0y*v2y;
+  const dot11=v1x*v1x+v1y*v1y;
+  const dot12=v1x*v2x+v1y*v2y;
+  const denom = dot00*dot11 - dot01*dot01;
+  const u = (dot11*dot02 - dot01*dot12) / denom;
+  const v = (dot00*dot12 - dot01*dot02) / denom;
+  return u>=0 && v>=0 && (u+v)<=1;
+}
+
+addEventListener('mousemove', e=>{
+  const {x,y} = getMouseScenePos(e);
+  const overSq = isPointInSquare(x,y,square);
+  const overTr = isPointInTriangle(x,y,triangle);
+  square.material.color.setHex(overSq?COLOR_SQ_HOVER:COLOR_SQ);
+  triangle.material.color.setHex(overTr?COLOR_TR_HOVER:COLOR_TR);
+});
+
+function tick(){ resize(); renderer.render(scene, cam); requestAnimationFrame(tick); }
+requestAnimationFrame(tick);
+
+addEventListener('resize', resize);
+</script>
+</body></html>
