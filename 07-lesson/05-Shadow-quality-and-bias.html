@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L07 · Step 05 — Shadow quality & bias</title>
+  <style>html,body{margin:0;height:100%}#app{width:100vw;height:100vh;background:#0e0e12;color:#fff}.label{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.5);padding:6px 8px;border-radius:6px;font:12px ui-monospace}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="label">Left: low quality (256 px, radius 1, bias -0.0001) · Right: high quality (2048 px, radius 3, normalBias 0.4)</div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+    const canvas = document.createElement('canvas'); host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth/host.clientHeight, 0.1, 200);
+    camera.position.set(0,5,16); camera.lookAt(0,0,0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+    // Left rig (low quality)
+    const sunL = new THREE.DirectionalLight(0xffffff, 1.0);
+    sunL.position.set(-6,10,6); sunL.castShadow = true;
+    sunL.shadow.mapSize.set(256,256);
+    sunL.shadow.radius = 1;
+    sunL.shadow.bias = -0.0001;
+    sunL.shadow.camera.left = -10; sunL.shadow.camera.right = 10; sunL.shadow.camera.top = 10; sunL.shadow.camera.bottom = -10;
+    scene.add(sunL);
+
+    // Right rig (high quality)
+    const sunR = new THREE.DirectionalLight(0xffffff, 1.0);
+    sunR.position.set(6,10,6); sunR.castShadow = true;
+    sunR.shadow.mapSize.set(2048,2048);
+    sunR.shadow.radius = 3;
+    sunR.shadow.normalBias = 0.4;
+    sunR.shadow.camera.left = -10; sunR.shadow.camera.right = 10; sunR.shadow.camera.top = 10; sunR.shadow.camera.bottom = -10;
+    scene.add(sunR);
+
+    const matGround = new THREE.MeshStandardMaterial({color:0x232736, roughness:0.95});
+    const gL = new THREE.Mesh(new THREE.PlaneGeometry(14,14), matGround); gL.rotation.x=-Math.PI/2; gL.position.set(-7, -1, 0); gL.receiveShadow = true;
+    const gR = new THREE.Mesh(new THREE.PlaneGeometry(14,14), matGround.clone()); gR.rotation.x=-Math.PI/2; gR.position.set(7, -1, 0); gR.receiveShadow = true;
+    scene.add(gL,gR);
+
+    function makeStack(x){
+      const group = new THREE.Group(); group.position.x = x;
+      const box = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshStandardMaterial({color:0xffc36e, roughness:0.55}));
+      const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.1,32,16), new THREE.MeshStandardMaterial({color:0x88ccff, roughness:0.35}));
+      box.position.set(0,0,0); sphere.position.set(0,1.6,0);
+      box.castShadow = sphere.castShadow = true;
+      group.add(box, sphere);
+      return group;
+    }
+    const leftStack = makeStack(-7);
+    const rightStack = makeStack(7);
+    scene.add(leftStack, rightStack);
+
+    const clock = new THREE.Clock();
+    function loop(){
+      const dt = clock.getDelta();
+      leftStack.rotation.y += dt*0.4;
+      rightStack.rotation.y -= dt*0.4;
+      renderer.setSize(host.clientWidth, host.clientHeight, false);
+      camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

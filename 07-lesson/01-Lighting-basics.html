@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L07 · Step 01 — Lighting basics (no shadows)</title>
+  <style>html,body{margin:0;height:100%}#app{width:100vw;height:100vh;background:#0e0e12;color:#fff}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+    const canvas = document.createElement('canvas'); host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth/host.clientHeight, 0.1, 100);
+    camera.position.set(5,3,8); camera.lookAt(0,0,0);
+
+    // Lights (no shadows yet)
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(6,10,6);
+    scene.add(dir);
+
+    // Ground (no receiving shadow yet)
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshStandardMaterial({color:0x2a2f47, roughness:0.9}));
+    ground.rotation.x = -Math.PI/2; ground.position.y = -1;
+    scene.add(ground);
+
+    // Objects
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.MeshStandardMaterial({color:0x66ccff, roughness:0.35, metalness:0.0}));
+    sphere.position.set(-2,0,0);
+    const cube = new THREE.Mesh(new THREE.BoxGeometry(1.6,1.6,1.6), new THREE.MeshStandardMaterial({color:0xf5d36f, roughness:0.65, metalness:0.2}));
+    cube.position.set(2,0,0);
+    scene.add(sphere, cube);
+
+    const clock = new THREE.Clock();
+    function loop(){
+      const dt = clock.getDelta();
+      sphere.rotation.y += dt*0.5;
+      cube.rotation.x += dt*0.4; cube.rotation.y += dt*0.6;
+      renderer.setSize(host.clientWidth, host.clientHeight, false);
+      camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

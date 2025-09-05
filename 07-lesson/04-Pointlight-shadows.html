@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L07 · Step 04 — Point light shadows</title>
+  <style>html,body{margin:0;height:100%}#app{width:100vw;height:100vh;background:#0e0e12;color:#fff}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+    const canvas = document.createElement('canvas'); host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth/host.clientHeight, 0.1, 200);
+    camera.position.set(8,5,12); camera.lookAt(0,0,0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+    const point = new THREE.PointLight(0xffffff, 1.2, 40, 2.0);
+    point.position.set(0,6,0);
+    point.castShadow = true;
+    point.shadow.mapSize.set(1024,1024);
+    point.shadow.bias = -0.0004;
+    scene.add(point);
+
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:0x232736, roughness:0.95}));
+    ground.rotation.x = -Math.PI/2; ground.position.y = -1; ground.receiveShadow = true;
+    scene.add(ground);
+
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.1, 32, 16), new THREE.MeshStandardMaterial({color:0x88e088, roughness:0.4}));
+    sphere.castShadow = true; sphere.position.set(-2.5,0,0);
+    const cube = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshStandardMaterial({color:0xffc36e, roughness:0.55, metalness:0.1}));
+    cube.castShadow = true; cube.position.set(2.5,0,0);
+    scene.add(sphere, cube);
+
+    const clock = new THREE.Clock();
+    function loop(){
+      const t = performance.now()*0.001;
+      point.position.x = Math.sin(t)*3.0;
+      point.position.z = Math.cos(t)*3.0;
+      renderer.setSize(host.clientWidth, host.clientHeight, false);
+      camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
