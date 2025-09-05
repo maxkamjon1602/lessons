@@ -14,20 +14,13 @@ This lesson moves from **2D (orthographic)** canvases to a **true 3D** scene usi
 ## Project Layout
 ```
 lesson-04-increments-fixed/
-├── 01-ortho-refresher/        # centered orthographic camera + axes helper
-│   └── index.html
-├── 02-shapes-ortho/           # 2D square & triangle centered (z=0)
-│   └── index.html
-├── 03-toggle-cameras/         # button to switch Ortho ↔ Perspective
-│   └── index.html
-├── 04-z-depth/                # place shapes at different Z values
-│   └── index.html
-├── 05-paired-toggles/         # group2D/group3D + checkboxes for pairs
-│   └── index.html
-├── 06-rotating-pairs/         # like 05 + rotation in Perspective only
-│   └── index.html
-└── 07-final/                  # polished demo (camera toggle + pairs + rotation)
-    └── index.html
+├── 01-ortho-refresher        # centered orthographic camera + axes helper
+├── 02-shapes-ortho           # 2D square & triangle centered (z=0)
+├── 03-toggle-cameras         # button to switch Ortho ↔ Perspective
+├── 04-z-depth                # place shapes at different Z values
+├── 05-paired-toggles         # group2D/group3D + checkboxes for pairs
+├── 06-rotating-pairs         # like 05 + rotation in Perspective only
+└── 07-final                  # polished demo (camera toggle + pairs + rotation)
 ```
 
 **File policy:** Each step is a single, self‑contained `index.html` (no bundler needed). All scripts use ESM from the official Three.js CDN.
