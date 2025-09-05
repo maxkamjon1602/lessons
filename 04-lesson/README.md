@@ -23,7 +23,7 @@ lesson-04-increments-fixed/
 └── 07-final                  # polished demo (camera toggle + pairs + rotation)
 ```
 
-**File policy:** Each step is a single, self‑contained `index.html` (no bundler needed). All scripts use ESM from the official Three.js CDN.
+**File policy:** Each step is a single, self‑contained `.html` file (no bundler needed). All scripts use ESM from the official Three.js CDN.
 
 ---
 

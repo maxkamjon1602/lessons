@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L05 · Step 01 — Scene + 2D Shapes</title>
+  <style>
+    html, body { margin:0; height:100%; }
+    #app { position:relative; width:100vw; height:100vh; background:#0e0e12; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+
+    const canvas = document.createElement('canvas');
+    host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+    renderer.setSize(host.clientWidth, host.clientHeight, false);
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth/host.clientHeight, 0.1, 100);
+    camera.position.set(0,0,6);
+    camera.lookAt(0,0,0);
+
+    const square = new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ color:0x66ccff }));
+    square.position.set(-1.2, 0, 0);
+    const triGeom = new THREE.BufferGeometry();
+    triGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([ 0,0.8,0, -0.7,-0.6,0, 0.7,-0.6,0 ]), 3));
+    const triangle = new THREE.Mesh(triGeom, new THREE.MeshBasicMaterial({ color:0xffaa55 }));
+    triangle.position.set(1.2, 0, 0);
+    scene.add(square, triangle);
+
+    function render() { renderer.render(scene, camera); requestAnimationFrame(render); }
+    render();
+
+    window.addEventListener('resize', () => {
+      const w = host.clientWidth, h = host.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    });
+  </script>
+</body>
+</html>

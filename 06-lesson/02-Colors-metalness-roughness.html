@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>L06 · Step 02 — Colors, metalness, roughness (patched)</title>
+  <style>html,body{margin:0;height:100%}#app{position:relative;width:100vw;height:100vh;background:#0e0e12;color:#fff;font:12px ui-monospace} .help{position:fixed;left:8px;bottom:8px;background:rgba(0,0,0,.5);padding:6px 8px;border-radius:6px}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="help">Keys: C = cycle color · M = cycle metal/rough presets</div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+    const canvas = document.createElement('canvas'); host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias:true });
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth/host.clientHeight, 0.1, 100);
+    camera.position.set(3,2,6); camera.lookAt(0,0,0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(5,10,5); scene.add(dir);
+
+    const cubeBasic = new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2), new THREE.MeshBasicMaterial({ color: 0x66ccff }));
+    cubeBasic.position.set(-1.9, 0, 0);
+
+    const cubeStdMat = new THREE.MeshStandardMaterial({ color: 0xD4AF37, metalness: 1.0, roughness: 0.25 });
+    const cubeStd = new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2), cubeStdMat);
+    cubeStd.position.set(1.9, 0, 0);
+    scene.add(cubeBasic, cubeStd);
+
+    const colors = [0xD4AF37, 0xff7e6e, 0x66ccff, 0x3fd18b, 0xffffff];
+    let ci=0;
+    const mr = [
+      { metalness: 0.0, roughness: 1.0 },
+      { metalness: 0.0, roughness: 0.3 },
+      { metalness: 1.0, roughness: 0.8 },
+      { metalness: 1.0, roughness: 0.2 },
+    ];
+    let mi=0;
+
+    window.addEventListener('keydown',(e)=>{
+      if(e.code==='KeyC'){ ci=(ci+1)%colors.length; cubeBasic.material.color.setHex(colors[ci]); cubeStd.material.color.setHex(colors[ci]); }
+      if(e.code==='KeyM'){ mi=(mi+1)%mr.length; cubeStdMat.metalness=mr[mi].metalness; cubeStdMat.roughness=mr[mi].roughness; cubeStdMat.needsUpdate=true; }
+    });
+
+    const clock = new THREE.Clock();
+    (function loop(){
+      const dt = clock.getDelta();
+      cubeBasic.rotation.y += dt * 0.6;
+      cubeStd.rotation.y -= dt * 0.6;
+      renderer.setSize(host.clientWidth, host.clientHeight, false);
+      camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>L06 · Step 04 — Color + bump map (patched)</title>
+  <style>html,body{margin:0;height:100%}#app{position:relative;width:100vw;height:100vh;background:#0e0e12;color:#fff;font:12px ui-monospace}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+    
+function makeChecker(size=512, squares=12, c1='#e6e6e6', c2='#bfc3cd'){
+  const c=document.createElement('canvas'); c.width=c.height=size; const ctx=c.getContext('2d');
+  const step=size/squares;
+  for(let y=0;y<squares;y++) for(let x=0;x<squares;x++){
+    ctx.fillStyle=((x+y)%2===0)?c1:c2; ctx.fillRect(x*step,y*step,step,step);
+  }
+  const tex=new THREE.CanvasTexture(c);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.anisotropy=4;
+  return tex;
+}
+function makeBumpFromChecker(size=512, squares=12){
+  const c=document.createElement('canvas'); c.width=c.height=size; const ctx=c.getContext('2d');
+  const step=size/squares;
+  for(let y=0;y<squares;y++) for(let x=0;x<squares;x++){
+    const v=((x+y)%2===0)? 210 : 120;
+    ctx.fillStyle=`rgb(${v},${v},${v})`;
+    ctx.fillRect(x*step,y*step,step,step);
+  }
+  const tex=new THREE.CanvasTexture(c);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping; return tex;
+}
+
+    const canvas = document.createElement('canvas'); host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias:true });
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth/host.clientHeight, 0.1, 100);
+    camera.position.set(3,2,6); camera.lookAt(0,0,0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(5,10,5); scene.add(dir);
+
+    const colorMap = makeChecker();
+    const bumpMap  = makeBumpFromChecker();
+
+    const cube = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshStandardMaterial({ map: colorMap, bumpMap: bumpMap, bumpScale: 0.08, roughness: 0.55, metalness: 0.0 }));
+    scene.add(cube);
+
+    const clock = new THREE.Clock();
+    (function loop(){
+      const dt = clock.getDelta();
+      cube.rotation.x += dt * 0.5;
+      cube.rotation.y += dt * 0.7;
+      renderer.setSize(host.clientWidth, host.clientHeight, false);
+      camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

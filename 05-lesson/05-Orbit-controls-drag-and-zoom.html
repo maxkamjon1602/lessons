@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L05 · Step 05 — Orbit (Drag/Wheel)</title>
+  <style>html,body{margin:0;height:100%}#app{position:relative;width:100vw;height:100vh;background:#0e0e12} .help{position:fixed;left:8px;bottom:8px;padding:6px 8px;background:rgba(0,0,0,.5);color:#fff;border-radius:6px;font:12px ui-monospace}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="help">Drag to orbit • Wheel to zoom • 1/2 switch cameras</div>
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    const host = document.getElementById('app');
+
+    function makePerspective(w,h){ const c=new THREE.PerspectiveCamera(50,w/h,0.1,100); c.position.set(3,2,6); c.lookAt(0,0,0); return c; }
+    function makeOrtho(w,h){ const a=w/h; const fh=h/100; const fw=fh*a; const c=new THREE.OrthographicCamera(-fw/2,fw/2,fh/2,-fh/2,-100,100); c.position.set(0,0,10); c.lookAt(0,0,0); return c; }
+    function updateCameraOnResize(cam,w,h){ if(cam.isPerspectiveCamera){cam.aspect=w/h;cam.updateProjectionMatrix();} else{const a=w/h;const fh=h/100;const fw=fh*a;cam.left=-fw/2;cam.right=fw/2;cam.top=fh/2;cam.bottom=-fh/2;cam.updateProjectionMatrix();} }
+
+    const canvas = document.createElement('canvas');
+    host.appendChild(canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+    renderer.setSize(host.clientWidth, host.clientHeight, false);
+    renderer.setClearColor(0x0e0e12, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const scene = new THREE.Scene();
+    let camera = makePerspective(host.clientWidth, host.clientHeight);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(5,10,5);
+    scene.add(ambient, dir);
+
+    const square = new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ color:0x66ccff }));
+    square.position.set(-1.2, 0, 0);
+    const triGeom = new THREE.BufferGeometry();
+    triGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([ 0,0.8,0, -0.7,-0.6,0, 0.7,-0.6,0 ]), 3));
+    const triangle = new THREE.Mesh(triGeom, new THREE.MeshBasicMaterial({ color:0xffaa55 }));
+    triangle.position.set(1.2, 0, 0);
+    const cube = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({ color:0x3fd18b, metalness:0.1, roughness:0.6 }));
+    cube.position.copy(square.position).add(new THREE.Vector3(0,0,-2));
+    const pyramid = new THREE.Mesh(new THREE.ConeGeometry(0.8,1.1,4), new THREE.MeshStandardMaterial({ color:0xf6d445, metalness:0.1, roughness:0.6 }));
+    pyramid.position.copy(triangle.position).add(new THREE.Vector3(0,0,-2));
+    pyramid.rotation.y = Math.PI * 0.25;
+    const group = new THREE.Group(); group.add(square, triangle, cube, pyramid); scene.add(group);
+
+    const target = new THREE.Vector3(0,0,0);
+    let isDown=false,lastX=0,lastY=0,theta=0,phi=0,radius=camera.position.length();
+    canvas.addEventListener('pointerdown', e => { isDown=true; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener('pointerup',   e => { isDown=false; canvas.releasePointerCapture?.(e.pointerId); });
+    canvas.addEventListener('pointermove', e => {
+      if(!isDown) return;
+      const dx=(e.clientX-lastX)*0.005, dy=(e.clientY-lastY)*0.005;
+      lastX=e.clientX; lastY=e.clientY;
+      theta -= dx;
+      phi = Math.max(-Math.PI/2+0.01, Math.min(Math.PI/2-0.01, phi - dy));
+    });
+    canvas.addEventListener('wheel', e => { radius = Math.max(1, Math.min(50, radius + e.deltaY * 0.001 * radius)); }, { passive:true });
+
+    const clock = new THREE.Clock();
+    (function loop(){
+      const dt = clock.getDelta();
+      group.rotation.y += dt * 0.6;
+      cube.rotation.x += dt * 0.8;
+      pyramid.rotation.y -= dt * 0.7;
+
+      const x = target.x + radius * Math.cos(phi) * Math.cos(theta);
+      const y = target.y + radius * Math.sin(phi);
+      const z = target.z + radius * Math.cos(phi) * Math.sin(theta);
+      camera.position.set(x,y,z);
+      camera.lookAt(target);
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    })();
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Digit1') camera = makePerspective(host.clientWidth, host.clientHeight);
+      if (e.code === 'Digit2') camera = makeOrtho(host.clientWidth, host.clientHeight);
+    });
+    window.addEventListener('resize', () => {
+      const w = host.clientWidth, h = host.clientHeight;
+      renderer.setSize(w, h, false);
+      updateCameraOnResize(camera, w, h);
+    });
+  </script>
+</body>
+</html>
