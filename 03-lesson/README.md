@@ -26,6 +26,11 @@ lesson-03-increments/
 └── 07-combine-inputs/         # everything together
 ```
 
+## 💪 Challenges
+- Add WASD keys to move the triangle independently of the square.
+- Hold **Shift** to temporarily boost movement speed.
+- Use the mouse wheel to scale shapes up or down.
+
 ---
 
 ## 🧭 Controls

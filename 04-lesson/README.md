@@ -25,6 +25,11 @@ lesson-04-increments-fixed/
 
 **File policy:** Each step is a single, self‑contained `.html` file (no bundler needed). All scripts use ESM from the official Three.js CDN.
 
+## 💪 Challenges
+- Replace the pyramid with a custom model loaded via `GLTFLoader`.
+- Add a UI control to switch materials or colors on the 3D shapes.
+- Enable a gentle rotation for the 2D group when in Orthographic view.
+
 ---
 
 ## How It Works (Architecture)

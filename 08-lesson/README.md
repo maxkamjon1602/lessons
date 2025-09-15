@@ -17,6 +17,11 @@ Each step is a **single HTML file** (no npm). All files share the same **scene s
 6. **Simulated Depth of Field** — **↑/↓** adjusts focus distance; objects away from focus gently fade.
 7. **Cinematic Camera Path** — press **Space** to play/pause a fly‑through; **R** to restart; subtle FOV ease.
 
+## 💪 Challenges
+- Add controls to modify the camera's near and far clipping planes at runtime.
+- Save and recall favorite camera positions with number keys.
+- Toggle a `CameraHelper` to visualize the active camera's frustum.
+
 ---
 
 ## 🧱 Shared Scaffold (all steps)

@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Lesson 09 · Step 7/7 — Presets & Performance</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
+  #app{width:100%;height:100%}
+  .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.55);border-radius:8px;color:#fff;font:14px monospace}
+  .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.5);border-radius:8px;color:#fff;font:12px monospace}
+</style>
+</head><body>
+<div id="app"></div>
+<div class="overlay">Lesson 09 · Step 7/7 — Presets & Performance</div>
+<div class="help">Presets: <b>Q</b> Clean · <b>W</b> Filmic · <b>E</b> Dreamy · <b>R</b> Off</div>
+<script type="module">
+import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+import { EffectComposer } from "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js";
+import { FXAAShader } from "https://unpkg.com/three@0.158.0/examples/jsm/shaders/FXAAShader.js";
+import { UnrealBloomPass } from "https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js";
+
+// scaffold
+const app=document.getElementById("app");
+const renderer=new THREE.WebGLRenderer({antialias:false}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight); renderer.setClearColor(0x0e0e12); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; app.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshStandardMaterial({color:0x232736,roughness:0.95})); ground.rotation.x=-Math.PI/2; ground.position.y=-1; scene.add(ground);
+const grid=new THREE.GridHelper(20,20,0x3a456f,0x2b3350); grid.position.y=-0.999; scene.add(grid);
+const mat1=new THREE.MeshStandardMaterial({color:0x88ccff,roughness:0.35,emissive:0x223344,emissiveIntensity:0.25});
+const mat2=new THREE.MeshStandardMaterial({color:0xffc36e,roughness:0.55,emissive:0x442200,emissiveIntensity:0.18});
+const mat3=new THREE.MeshPhysicalMaterial({color:0xD4AF37,metalness:1,roughness:0.2,emissive:0x111111,emissiveIntensity:0.1});
+const sphere=new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48),mat1);
+const cube=new THREE.Mesh(new THREE.BoxGeometry(2,2,2),mat2);
+const pyramid=new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5),mat3);
+sphere.position.x=-3;pyramid.position.x=3;scene.add(sphere,cube,pyramid);
+scene.add(new THREE.AmbientLight(0xffffff,0.35)); const dir=new THREE.DirectionalLight(0xffffff,1); dir.position.set(6,10,6); scene.add(dir);
+const camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,300);
+let theta=-0.4,phi=0.3,distance=9,panX=0,panY=0; function updateCamera(){const cx=panX,cy=panY,cz=0;const x=cx+distance*Math.cos(phi)*Math.cos(theta),y=cy+distance*Math.sin(phi),z=cz+distance*Math.cos(phi)*Math.sin(theta);camera.position.set(x,y,z);camera.lookAt(cx,cy,cz);} updateCamera();
+let isDown=false,lastX=0,lastY=0,shift=false;
+addEventListener('pointerdown',e=>{isDown=true;lastX=e.clientX;lastY=e.clientY;shift=e.shiftKey;});
+addEventListener('pointerup',()=>isDown=false);
+addEventListener('pointermove',e=>{if(!isDown)return;const dx=(e.clientX-lastX)/innerWidth,dy=(e.clientY-lastY)/innerHeight;if(shift){panX-=dx*6;panY+=dy*6;}else{theta-=dx*3.2;phi=Math.max(-1.2,Math.min(1.2,phi-dy*2.4));}lastX=e.clientX;lastY=e.clientY;updateCamera();});
+addEventListener('wheel',e=>{distance=Math.max(3,Math.min(40,distance+Math.sign(e.deltaY)*0.8));updateCamera();},{passive:true});
+
+// Composer & passes
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const fxaa=new ShaderPass(FXAAShader); fxaa.material.uniforms['resolution'].value.set(1/innerWidth,1/innerHeight);
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.7,0.9,0.85);
+// Filmic grade (slight lift/gamma/gain + vignette)
+const VGrade={uniforms:{tDiffuse:{value:null},lift:{value:new THREE.Vector3(.02,.02,.02)},gamma:{value:new THREE.Vector3(1.05,1.05,1.05)},gain:{value:new THREE.Vector3(1.05,1.05,1.05)}},
+vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+fragmentShader:`uniform sampler2D tDiffuse;uniform vec3 lift,gamma,gain;varying vec2 vUv;void main(){vec2 uv=vUv-0.5;float v=1.0-smoothstep(0.2,0.85,length(uv)*1.45);vec4 c=texture2D(tDiffuse,vUv);c.rgb=(c.rgb+lift);c.rgb=pow(max(c.rgb,0.0),gamma);c.rgb*=gain; c.rgb*=mix(1.0,v,0.35);gl_FragColor=c;}`};
+const filmic=new ShaderPass(VGrade);
+
+function preset(name){
+  // clear to render only
+  composer.passes.length=1;
+  if(name==='clean'){ composer.addPass(fxaa); }
+  if(name==='filmic'){ composer.addPass(fxaa); composer.addPass(filmic); }
+  if(name==='dreamy'){ composer.addPass(bloom); composer.addPass(filmic); }
+  if(name==='off'){ /* no passes */ }
+}
+preset('filmic');
+
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='q') preset('clean');
+  if(k==='w') preset('filmic');
+  if(k==='e') preset('dreamy');
+  if(k==='r') preset('off');
+});
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();composer.setSize(innerWidth,innerHeight);fxaa.material.uniforms['resolution'].value.set(1/innerWidth,1/innerHeight);bloom.setSize(innerWidth,innerHeight);});
+renderer.setAnimationLoop(()=>{ updateCamera(); composer.render(); });
+</script></body></html>

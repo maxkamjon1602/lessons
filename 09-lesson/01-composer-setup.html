@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sanity Check — Three Loader</title>
+<style>
+  html,body{margin:0;height:100%;background:#0e0e12;overflow:hidden}
+  #app{width:100%;height:100%}
+  .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;border-radius:8px;
+    background:rgba(0,0,0,.55);color:#fff;font:14px monospace}
+  .error{position:fixed;bottom:8px;left:8px;right:8px;padding:8px;white-space:pre-wrap;
+    border-radius:8px;background:#2a0000;color:#ffd2d2;font:12px monospace}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="overlay">Sanity Check — if you see a gray cube with light, imports work ✅</div>
+<div id="err" class="error" style="display:none"></div>
+<script type="module">
+const CDN_BASES = [
+  "https://unpkg.com/three@0.158.0",
+  "https://cdn.jsdelivr.net/npm/three@0.158.0"
+];
+
+async function loadThree() {
+  let lastErr;
+  for (const base of CDN_BASES) {
+    try {
+      const THREE = await import(`${base}/build/three.module.js`);
+      const { OrbitControls } = await import(`${base}/examples/jsm/controls/OrbitControls.js`);
+      return { THREE, OrbitControls, base };
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("Failed to import three from all CDNs");
+}
+
+function setOutputEncoding(renderer, THREE){
+  // Works on r150+ (outputColorSpace) and older (outputEncoding)
+  if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) {
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+  } else if ('outputEncoding' in renderer && THREE.sRGBEncoding) {
+    renderer.outputEncoding = THREE.sRGBEncoding;
+  }
+}
+
+(async () => {
+  const app = document.getElementById("app");
+  const err = document.getElementById("err");
+  try {
+    const { THREE, OrbitControls, base } = await loadThree();
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setClearColor(0x0e0e12);
+    setOutputEncoding(renderer, THREE);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    app.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 300);
+    camera.position.set(5,3,8);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.35);
+    const dir = new THREE.DirectionalLight(0xffffff, 1); dir.position.set(6,10,6);
+    scene.add(ambient, dir);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(20,20),
+      new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95 })
+    );
+    ground.rotation.x = -Math.PI/2; ground.position.y = -1; scene.add(ground);
+
+    const grid = new THREE.GridHelper(20,20,0x3a456f,0x2b3350);
+    grid.position.y = -0.999; scene.add(grid);
+
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(2,2,2),
+      new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55 })
+    );
+    scene.add(cube);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0,0,0); controls.update();
+
+    addEventListener('resize', () => {
+      renderer.setSize(innerWidth, innerHeight);
+      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+    });
+
+    renderer.setAnimationLoop(()=>{ cube.rotation.y += 0.01; renderer.render(scene, camera); });
+
+  } catch(e){
+    err.style.display = "block";
+    err.textContent = "Import failed. Details:\n" + (e && (e.stack || e.message || String(e)));
+  }
+})();
+</script>
+</body>
+</html>

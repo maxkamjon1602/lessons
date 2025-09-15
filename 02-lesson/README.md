@@ -11,5 +11,10 @@ This lesson builds on Lesson 1 and introduces **THREE.Group** for hierarchical t
 6. **Group + Individual Animations** — group spins while items rotate independently.
 7. **Toggles: Group vs Items** — buttons to control group vs item rotations separately.
 
+## Challenges
+- Add a new shape (e.g., a circle) to the group and include it in the rotation logic.
+- Create a second group with its own position and rotation controls.
+- Add UI to scale individual shapes within the group.
+
 ## Run
 All html files can be run with normal browsers.

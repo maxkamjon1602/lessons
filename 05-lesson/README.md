@@ -53,6 +53,11 @@ Resize the canvas using **devicePixelRatio** (clamped) and update camera project
 ### 07 — HUD + runtime toggles (final)
 Tiny FPS HUD. Runtime flags: toggle rotation (**R**), switch cameras (**1/2**).
 
+## 💪 Challenges
+- Add a new pair like circle/sphere with its own visibility toggle.
+- Extend orbit controls with right-click panning or keyboard WASD.
+- Provide a key to reset the camera position and HUD stats.
+
 ---
 
 ## ⌨️ Controls (Step 05–07)

@@ -180,8 +180,13 @@ This repository contains **step-by-step lessons** that teach **3D graphics, inte
 - Lessons 9–18 = **advanced graphics, shaders, particles, postprocessing**  
 - Lessons 19–21 = **final open-world interactive project**  
 
+- [Three.js Docs](https://threejs.org/docs/): Official API reference for the entire library
+- [Discover three.js](https://discoverthreejs.com/): Project-based tutorials that build real applications step by step
+- [Three.js Fundamentals](https://threejsfundamentals.org/): Beginner-friendly explanations of core concepts with interactive examples
+- [The Book of Shaders](https://thebookofshaders.com/): Creative guide to writing shaders with GLSL
+
 ---
 
 <p align="center">
-  🌟 Built with ❤️ and Three.js · <strong>Learn · Teach · Build Worlds</strong>
+  🌟 Built with ❤️ and Three.js · <strong>Learn · Try · @maxkamjon.abdumannobov</strong>
 </p>
