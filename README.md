@@ -12,28 +12,176 @@ This repository contains **step-by-step lessons** that teach **3D graphics, inte
 - 🧩 **Small, focused demos** — every step introduces *one new concept* (renderer, camera, shape, UI, animation).  
 - 🎬 **YouTube tutorials** — each folder matches a video on my channel, so you can code along.
 
----
-
-## 📑 Lesson 01 — Square & Triangle
-
-The very first lesson introduces a **square** and a **triangle** on a full-screen canvas.  
-We build it up step by step:
-
-| Step | Folder | What it Teaches |
-|------|--------|-----------------|
-| 00   | [`full-demo`](01-lesson/index.html) | Final code of this lesson. |
-| 01   | [`01-renderer`](01-lesson/step-1.html) | Create a Three.js renderer and clear the screen. |
-| 02   | [`02-ortho-camera`](01-lesson/step-2.html) | Use an **orthographic camera** in pixel units. |
-| 03   | [`03-square`](01-lesson/step-3.html) | Draw your first white square. |
-| 04   | [`04-triangle`](01-lesson/step-4.html) | Add a custom triangle shape. |
-| 05   | [`05-toggles`](01-lesson/step-5.html) | Add checkboxes to show/hide shapes. |
-| 06   | [`06-rotate-z`](01-lesson/step-6.html) | Spin shapes around the **Z axis**. |
-| 07   | [`07-rotate-y`](01-lesson/step-7.html) | Flip shapes in depth using the **Y axis**. |
-
----
-
-## 📂 Repo Structure
-
 
 --- 
 
+# 🌌 The 3D Web Journey — Lessons 1–8
+> **56 steps · from first renderer to cinematic camera paths**
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/threejs/three.js/dev/files/icon.png" width="100"/>
+</p>
+
+---
+
+## 📂 Project Structure
+
+
+- 📄 Each **lesson** folder contains **7 standalone HTML files** (`01-…html` → `07-…html`).  
+- 🧭 Each step has a **floating overlay**: `Lesson · Step`.  
+- ⚡ Open any `.html` directly in your browser — no npm, no build step.  
+
+---
+
+# 📚 Lessons Overview (1–8)
+
+---
+
+## 🟦 Lesson 1 — Intro Scene
+**Goal:** First contact with Three.js. Setup renderer, camera, and add simple shapes.
+
+- [01 — Renderer](lessons/01-lesson/step-1.html)  
+- [02 — Ortho Camera](lessons/01-lesson/step-2.html)  
+- [03 — Square](lessons/01-lesson/step-3.html)  
+- [04 — Triangle](lessons/01-lesson/step-4.html)  
+- [05 — Toggles](lessons/01-lesson/step-5.html)  
+- [06 — Rotate Z](lessons/01-lesson/step-6.html)  
+- [07 — Rotate Y](lessons/01-lesson/step-7.html)  
+
+📸 _Learner sees: static → moving 2D primitives with basic rotations._
+
+---
+
+## 🔶 Lesson 2 — Multiple Objects & Grouping
+**Goal:** Learn how to combine meshes into groups, move/rotate them together, and contrast with independent meshes.
+
+- [01 — Renderer + Ortho](lessons/02-lesson/01-renderer.html)  
+- [02 — Shapes Refresh](lessons/02-lesson/02-shapes.html)  
+- [03 — Create Group](lessons/02-lesson/03-group-create.html)  
+- [04 — Move Group](lessons/02-lesson/04-group-move.html)  
+- [05 — Rotate Group](lessons/02-lesson/05-group-rotate.html)  
+- [06 — Group + Individual](lessons/02-lesson/06-group-and-individual.html)  
+- [07 — Toggles](lessons/02-lesson/07-toggles.html)  
+
+📸 _Learner sees: groups vs independent objects; group transform differences._
+
+---
+
+## 🟥 Lesson 3 — Transformations & Input
+**Goal:** Introduce keyboard and mouse input to manipulate objects.
+
+- [01 — Renderer + Ortho](lessons/03-lesson/01-renderer.html)  
+- [02 — Shapes Review](lessons/03-lesson/02-shapes.html)  
+- [03 — Arrow Keys Move](lessons/03-lesson/03-keys-move-square.html)  
+- [04 — Space Reset](lessons/03-lesson/04-keys-reset-space.html)  
+- [05 — Mouse Follow](lessons/03-lesson/05-mouse-follow-triangle.html)  
+- [06 — Group Move + Scale](lessons/03-lesson/06-group-move-scale.html)  
+- [07 — Final Mini Demo](lessons/03-lesson/07-final-mini-demo.html)  
+
+📸 _Learner sees: interactive movement, reset keys, mouse-follow mechanics._
+
+---
+
+## 🟩 Lesson 4 — Animations & Camera Toggles
+**Goal:** Toggle between perspective/ortho, rotate shapes, combine 2D↔3D pairs.
+
+- [01 — Ortho Refresher](lessons/04-lesson/01-ortho-refresher.html)  
+- [02 — Shapes Ortho](lessons/04-lesson/02-shapes-ortho.html)  
+- [03 — Toggle Cameras](lessons/04-lesson/03-toggle-cameras.html)  
+- [04 — Z Depth](lessons/04-lesson/04-z-depth.html)  
+- [05 — 2D↔3D Toggle Pairs](lessons/04-lesson/05-paired-toggles.html)  
+- [06 — Rotating 3D Pairs](lessons/04-lesson/06-rotating-pairs.html)  
+- [07 — Final 2D↔3D Demo](lessons/04-lesson/07-final.html)  
+
+📸 _Learner sees: perspective vs ortho, toggling between 2D and 3D forms._
+
+---
+
+## 🟪 Lesson 5 — Materials
+**Goal:** Explore material types — basic, metallic, transparent — and add orbit controls.
+
+- [01 — Scene + 2D Shapes](lessons/05-lesson/01-Scene-and-2D-shapes.html)  
+- [02 — 3D Counterparts + Lights](lessons/05-lesson/02-Add-3D-counterparts-and-lights.html)  
+- [03 — Group + Animation](lessons/05-lesson/03-Group-and-Animation.html)  
+- [04 — Ortho Camera + Switch Keys](lessons/05-lesson/04-Orthographic-camera-and-switch.html)  
+- [05 — Orbit Controls (Drag/Wheel)](lessons/05-lesson/05-Orbit-controls-drag-and-zoom.html)  
+- [06 — DPR-aware Resize](lessons/05-lesson/06-DPR-aware-resize.html)  
+- [07 — HUD + Toggles](lessons/05-lesson/07-HUD-and-runtime-toggles.html)  
+
+📸 _Learner sees: different materials side by side, with orbit & resize responsiveness._
+
+---
+
+## 🟧 Lesson 6 — Extended Materials & Textures
+**Goal:** Apply image textures, bump maps, transparency, and environment mapping.
+
+- [01 — Basic Material Types](lessons/06-lesson/01-Basic-material-types.html)  
+- [02 — Colors, Metalness, Roughness](lessons/06-lesson/02-Colors-metalness-roughness.html)  
+- [03 — Apply Wood Texture](lessons/06-lesson/03-Apply-image-texture-wood-canvas.html)  
+- [04 — Color + Bump Map](lessons/06-lesson/04-Color-plus-bump-map-cube.html)  
+- [05 — Transparency + Alpha](lessons/06-lesson/05-Transparency-and-alpha-map-triangle.html)  
+- [06 — Environment Map Reflections](lessons/06-lesson/06-Environment-map-reflections.html)  
+- [07 — Final Polished Scene](lessons/06-lesson/07-Final-polish-combined-scene.html)  
+
+📸 _Learner sees: realistic wood, bumpy surfaces, transparent glass, reflective spheres._
+
+---
+
+## 🟨 Lesson 7 — Lighting & Shadows
+**Goal:** Explore lights, shadow types, quality, and shadow materials.
+
+- [01 — Lighting Basics](lessons/07-lesson/01-Lighting-basics.html)  
+- [02 — Directional Light Shadows](lessons/07-lesson/02-Directional-shadows.html)  
+- [03 — Spotlight Shadows](lessons/07-lesson/03-Spotlight-shadows.html)  
+- [04 — Point Light Shadows](lessons/07-lesson/04-Pointlight-shadows.html)  
+- [05 — Shadow Quality & Bias](lessons/07-lesson/05-Shadow-quality-and-bias.html)  
+- [06 — ShadowMaterial & Hemisphere](lessons/07-lesson/06-ShadowMaterial-and-Hemisphere.html)  
+- [07 — Final Lighting Demo](lessons/07-lesson/07-Final.html)  
+
+📸 _Learner sees: multiple light types, shadow tuning, hemisphere light blending._
+
+---
+
+## 🟫 Lesson 8 — Camera Projection Deep Dive
+**Goal:** Master camera types, FOV, zoom vs dolly, and cinematic paths.
+
+- [01 — Camera Types (Perspective vs Ortho)](lessons/08-lesson/01-camera-types.html)  
+- [02 — FOV & Aspect](lessons/08-lesson/02-fov-and-aspect.html)  
+- [03 — Zoom vs Dolly](lessons/08-lesson/03-zoom-vs-dolly.html)  
+- [04 — Fit Camera to Object](lessons/08-lesson/04-fit-camera-to-object.html)  
+- [05 — Screen ↔ World Coordinates](lessons/08-lesson/05-screen-world-coordinates.html)  
+- [06 — Depth of Field Simulation](lessons/08-lesson/06-manual-orbit-and-pan.html)  
+- [07 — Cinematic Camera Path](lessons/08-lesson/07-cinematic-camera-path.html)  
+
+📸 _Learner sees: cameras switching, zoom vs dolly contrast, final cinematic fly-through._
+
+---
+
+# 🔬 In-Depth Analysis
+
+### 🧭 Teaching Philosophy
+- **Consistency:** Same scaffold → learners focus only on what’s new.  
+- **Visible Deltas:** Every step introduces a **clear change**.  
+- **Overlay Guidance:** Students never lose orientation (`Lesson · Step`).  
+
+### ⚡ Performance Mindset
+- DPR clamped to ≤2 for smooth FPS.  
+- Shadows optimized (map size + bias tweaks).  
+- Lightweight primitives before models/textures.  
+
+### 📖 Documentation
+- Each lesson has a matching **DOCX report** (`/docs/reports/`) explaining:  
+  - All **variables** and their default values  
+  - All **methods** and their parameters  
+  - All **numbers** (e.g., why FOV=75, why bias=-0.0005)  
+
+### 🌍 Endgame Vision
+- Lessons 1–8 = **foundation**  
+- Lessons 9–18 = **advanced graphics, shaders, particles, postprocessing**  
+- Lessons 19–21 = **final open-world interactive project**  
+
+---
+
+<p align="center">
+  🌟 Built with ❤️ and Three.js · <strong>Learn · Teach · Build Worlds</strong>
+</p>
