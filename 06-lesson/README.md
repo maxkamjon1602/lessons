@@ -71,6 +71,11 @@ lesson-06/
   - **Gold pyramid**
 - Add **orbit controls**, **multiple lights**, and **camera switch (1 = Perspective, 2 = Ortho)**.
 
+## 💪 Challenges
+- Replace the procedural wood texture with a photo texture of your choice.
+- Animate metalness or roughness values over time to show material changes.
+- Load an HDR environment map instead of the procedural cube map.
+
 ---
 
 ## 🎮 Controls

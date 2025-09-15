@@ -65,6 +65,11 @@ lesson-07/
 - Interactive camera orbit.
 - Toggle lights with keys `1,2,3`.
 
+## 💪 Challenges
+- Animate one of the lights along a path to create moving shadows.
+- Add controls to tweak shadow map size or bias at runtime.
+- Create a day/night mode by changing light colors and intensities.
+
 ---
 
 ## 🎮 Controls (Final Scene)

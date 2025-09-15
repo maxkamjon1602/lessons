@@ -94,3 +94,10 @@ lesson-01-increments/
 
 👉 **Key idea:** Even with orthographic camera, 3D transforms like depth rotation still work.
 
+---
+
+## 💪 Challenges
+- Add a `CircleGeometry` as a third shape and hook it into the visibility toggles.
+- Create a slider that controls the rotation speed for the Z/Y spin buttons.
+- Introduce a keyboard shortcut to reset all rotations to zero.
+
