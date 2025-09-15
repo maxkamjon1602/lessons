@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lesson 08 · Step 7/7 — Cinematic Camera Path</title>
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12;}
+    #app{width:100%;height:100%;}
+    .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;
+      background:rgba(0,0,0,0.55);border-radius:8px;color:#fff;font:14px monospace;}
+    .hud{position:fixed;top:8px;right:8px;padding:6px 10px;
+      background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;font:12px monospace;line-height:1.5;}
+    .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;
+      background:rgba(0,0,0,0.5);border-radius:8px;color:#fff;font:12px monospace;}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="overlay">Lesson 08 · Step 7/7 — Cinematic Camera Path</div>
+  <div class="hud">
+    t: <span id="tval">0.00</span><br>
+    FOV: <span id="fovVal">50</span>°
+  </div>
+  <div class="help">
+    <b>Space</b> = play/pause · <b>R</b> = restart<br>
+    (Paused) Drag = orbit · Shift+Drag = pan · Wheel = dolly
+  </div>
+
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    document.getElementById("app").appendChild(renderer.domElement);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x0e0e12);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    // Scene (consistent scaffold)
+    const scene = new THREE.Scene();
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(60,60),
+      new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95, metalness:0.0 })
+    );
+    ground.rotation.x = -Math.PI/2;
+    ground.position.y = -1.2;
+    scene.add(ground);
+
+    const grid = new THREE.GridHelper(60, 40, 0x3a456f, 0x2b3350);
+    grid.position.y = -1.199; scene.add(grid);
+
+    // Objects (a bit more spaced for a cinematic arc)
+    const matA = new THREE.MeshStandardMaterial({ color:0x88ccff, roughness:0.35, metalness:0.1 });
+    const matB = new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55, metalness:0.2 });
+    const matGold = new THREE.MeshPhysicalMaterial({ color:0xD4AF37, metalness:1.0, roughness:0.2, clearcoat:0.3, clearcoatRoughness:0.15 });
+
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.3, 32, 16), matA); sphere.position.set(-4, 0, -2);
+    const cube   = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 2.4), matB); cube.position.set(0, 0, 0);
+    const cone   = new THREE.Mesh(new THREE.ConeGeometry(1.2, 1.8, 5), matGold); cone.position.set(4, -0.1, 3);
+
+    scene.add(sphere, cube, cone);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(6, 10, 6);
+    scene.add(dir);
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 300);
+
+    // ---------- Orbit-lite controls (active when paused) ----------
+    let theta = -0.8, phi = 0.25, radius = 12;
+    let panX = 0, panY = 0;
+    let isDown = false, isPan = false, lastX = 0, lastY = 0;
+
+    const cvs = renderer.domElement;
+    cvs.addEventListener("pointerdown", e => { if(!playing){ isDown = true; isPan = e.shiftKey || (e.button===2); lastX = e.clientX; lastY = e.clientY; }});
+    cvs.addEventListener("pointerup",   () => { isDown = false; isPan = false; });
+    cvs.addEventListener("contextmenu", e => e.preventDefault());
+    cvs.addEventListener("pointermove", e => {
+      if(!isDown || playing) return;
+      const dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
+      if(isPan){ panX -= dx*0.01; panY += dy*0.01; }
+      else { theta -= dx*0.005; phi = Math.max(-1.2, Math.min(1.2, phi - dy*0.005)); }
+    });
+    cvs.addEventListener("wheel", e => {
+      if(!playing){ radius = Math.max(4, Math.min(40, radius + Math.sign(e.deltaY)*0.6)); }
+    }, {passive:true});
+
+    // ---------- Cinematic path ----------
+    let playing = true;
+    let t = 0; // 0..1
+    const tval = document.getElementById("tval");
+    const fovVal = document.getElementById("fovVal");
+
+    // Easing helpers
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+    const smoothstep = (a,b,x)=>{ x=clamp((x-a)/(b-a),0,1); return x*x*(3-2*x); };
+    const easeInOutCubic = x => x<0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2,3)/2;
+
+    // Timeline keyframes (start -> end)
+    const KF = {
+      radius: { a: 14, b: 6 },        // dolly in
+      theta:  { a: -0.8, b: 1.2 },    // orbit around rightwards
+      phi:    { a: 0.22, b: 0.55 },   // slight upward tilt
+      fov:    { a: 55,  b: 45 }       // a bit of zoom for punch-in
+    };
+
+    // Controls
+    window.addEventListener("keydown", e=>{
+      if(e.code === "Space"){ playing = !playing; }
+      if(e.code === "KeyR"){ playing = true; t = 0; }
+    });
+
+    // Resize
+    function onResize(){
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w/h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener("resize", onResize);
+    onResize();
+
+    // Animate
+    const clock = new THREE.Clock();
+    function loop(){
+      const dt = clock.getDelta();
+
+      // Object motion (subtle)
+      sphere.rotation.y += dt*0.35;
+      cube.rotation.y   += dt*0.45;
+      cone.rotation.y   -= dt*0.30;
+
+      // Advance timeline
+      if(playing){
+        t = Math.min(1, t + dt * 0.12); // ~8–9 seconds full move
+      }
+      tval.textContent = t.toFixed(2);
+
+      // Eased parameters
+      const e1 = easeInOutCubic(t);
+      const e2 = smoothstep(0.1, 0.9, t); // use a different ease for FOV
+      const curRadius = KF.radius.a + (KF.radius.b - KF.radius.a) * e1;
+      const curTheta  = KF.theta.a  + (KF.theta.b  - KF.theta.a)  * e1;
+      const curPhi    = KF.phi.a    + (KF.phi.b    - KF.phi.a)    * e1;
+      const curFov    = KF.fov.a    + (KF.fov.b    - KF.fov.a)    * e2;
+
+      // When playing, override orbit params; paused = manual
+      const R = playing ? curRadius : radius;
+      const TH = playing ? curTheta  : theta;
+      const PH = playing ? curPhi    : phi;
+
+      // Camera FOV update
+      if(Math.abs(camera.fov - curFov) > 0.01 && playing){
+        camera.fov = curFov; camera.updateProjectionMatrix();
+      }
+      fovVal.textContent = Math.round(camera.fov).toString();
+
+      // Camera orbit around (panX, panY, 0)
+      const cx = panX, cy = panY, cz = 0;
+      const x = cx + R * Math.cos(PH) * Math.cos(TH);
+      const y = cy + R * Math.sin(PH);
+      const z = cz + R * Math.cos(PH) * Math.sin(TH);
+      camera.position.set(x,y,z);
+      camera.lookAt(cx,cy,cz);
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
