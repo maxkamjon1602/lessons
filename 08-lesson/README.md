@@ -62,4 +62,4 @@ By the end of Lesson 08, learners can:
 - `06-Depth-of-Field.html`
 - `07-Cinematic-Camera-Path.html`
 
-Happy teaching! ✨
+Happy coding! ✨
