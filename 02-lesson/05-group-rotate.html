@@ -9,10 +9,11 @@
   #controls button{background:#1a1d2b;color:#e6e6e6;border:1px solid #444;border-radius:6px;padding:4px 10px;cursor:pointer}
   #controls button:hover{background:#2d3144}
   #controls label{cursor:pointer}
-</style>
+.overlay{position:fixed;top:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,0.55);border-radius:8px;color:#fff;font:14px monospace;}</style>
 </head><body>
 <div id="controls"><button id="btn-rotate-group">Rotate Group: OFF</button></div>
 <canvas id="c"></canvas>
+<div class="overlay">Lesson 02 · Step 5/7 — Rotate Group</div>
 <script type="module">
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 const canvas = document.getElementById('c');
