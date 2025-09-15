@@ -13,11 +13,6 @@ This repository contains **step-by-step lessons** that teach **3D graphics, inte
 - 🎬 **YouTube tutorials** — each folder matches a video on my channel, so you can code along.
 
 
---- 
-
-# 🌌 The 3D Web Journey — Lessons 1–8
-> **56 steps · from first renderer to cinematic camera paths**
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/threejs/three.js/dev/files/icon.png" width="100"/>
 </p>
