@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lesson 09 · Step 4/7 — Vignette & Grade</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
+  #app{width:100%;height:100%}
+  .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.55);border-radius:8px;color:#fff;font:14px monospace}
+  .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.5);border-radius:8px;color:#fff;font:12px monospace}
+  .error{position:fixed;left:8px;right:8px;bottom:8px;padding:10px;border-radius:10px;background:#2a0000;color:#ffd2d2;font:12px/1.4 monospace;white-space:pre-wrap;max-height:40%;overflow:auto;display:none}
+</style>
+
+<!-- Import map so examples/jsm modules can resolve "three" -->
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.158.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div class="overlay">Lesson 09 · Step 4/7 — Vignette & Grade</div>
+<div class="help">Toggle Vignette/Grade: <b>V</b> · Adjust Lift/Gamma/Gain: <b>1</b>/<b>2</b>/<b>3</b> (hold <b>Shift</b> for -) · Drag=orbit · Shift+Drag=pan · Wheel=dolly</div>
+<div id="err" class="error"></div>
+
+<script type="module">
+const showErr = (e) => { const el=document.getElementById('err'); el.style.display='block'; el.textContent=(e&&(e.stack||e.message))||String(e); };
+
+(async () => {
+  try {
+    const THREE = await import('three');
+    const { EffectComposer } = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js');
+    const { RenderPass }     = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js');
+    const { ShaderPass }     = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js');
+
+    const app = document.getElementById('app');
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias:false });
+    app.appendChild(renderer.domElement);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x0e0e12);
+    if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    else if ('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    // Scene (scaffold)
+    const scene = new THREE.Scene();
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95 }));
+    ground.rotation.x = -Math.PI/2; ground.position.y = -1; scene.add(ground);
+    const grid = new THREE.GridHelper(20,20,0x3a456f,0x2b3350); grid.position.y = -0.999; scene.add(grid);
+
+    const mat1 = new THREE.MeshStandardMaterial({ color:0x88ccff, roughness:0.35 });
+    const mat2 = new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55 });
+    const mat3 = new THREE.MeshPhysicalMaterial({ color:0xD4AF37, metalness:1, roughness:0.2 });
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48), mat1);
+    const cube   = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), mat2);
+    const pyramid= new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5), mat3);
+    sphere.position.x=-3; pyramid.position.x=3; scene.add(sphere,cube,pyramid);
+
+    scene.add(new THREE.AmbientLight(0xffffff,0.35));
+    const dir = new THREE.DirectionalLight(0xffffff,1); dir.position.set(6,10,6); scene.add(dir);
+
+    // Camera + manual orbit/pan/dolly
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 300);
+    let theta=-0.4, phi=0.30, distance=9, panX=0, panY=0;
+    function updateCamera(){
+      const cx=panX, cy=panY, cz=0;
+      const x=cx+distance*Math.cos(phi)*Math.cos(theta);
+      const y=cy+distance*Math.sin(phi);
+      const z=cz+distance*Math.cos(phi)*Math.sin(theta);
+      camera.position.set(x,y,z); camera.lookAt(cx,cy,cz);
+    }
+    updateCamera();
+
+    // Inputs
+    let isDown=false,lastX=0,lastY=0,shift=false;
+    renderer.domElement.addEventListener('pointerdown',e=>{isDown=true;lastX=e.clientX;lastY=e.clientY;shift=e.shiftKey;});
+    addEventListener('pointerup',()=>isDown=false);
+    addEventListener('pointermove',e=>{
+      if(!isDown) return;
+      const dx=(e.clientX-lastX)/window.innerWidth, dy=(e.clientY-lastY)/window.innerHeight;
+      if(shift){ panX-=dx*6; panY+=dy*6; }
+      else { theta-=dx*3.2; phi=Math.max(-1.2,Math.min(1.2,phi - dy*2.4)); }
+      lastX=e.clientX; lastY=e.clientY; updateCamera();
+    });
+    addEventListener('wheel',e=>{ distance=Math.max(3,Math.min(40,distance+Math.sign(e.deltaY)*0.8)); updateCamera(); }, {passive:true});
+
+    // Composer + custom Vignette/Grade ShaderPass
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const VignetteGradeShader = {
+      uniforms: {
+        tDiffuse:{ value:null },
+        vignetteStrength:{ value:0.35 },
+        lift:{ value:new THREE.Vector3(0.00,0.00,0.00) },
+        gamma:{ value:new THREE.Vector3(1.00,1.00,1.00) },
+        gain:{ value:new THREE.Vector3(1.00,1.00,1.00) }
+      },
+      vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }
+      `,
+      fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse;
+        uniform float vignetteStrength;
+        uniform vec3 lift, gamma, gain;
+        varying vec2 vUv;
+
+        vec3 grade(vec3 c){
+          c = (c + lift);                 // lift
+          c = pow(max(c, 0.0), gamma);    // gamma
+          c = c * gain;                   // gain
+          return c;
+        }
+
+        void main(){
+          vec2 uv  = vUv - 0.5;
+          float v  = 1.0 - smoothstep(0.2, 0.8, length(uv)*1.4); // vignette mask
+          vec4 col = texture2D(tDiffuse, vUv);
+          col.rgb  = grade(col.rgb);
+          col.rgb *= mix(1.0, v, vignetteStrength);
+          gl_FragColor = col;
+        }
+      `
+    };
+
+    const vignette = new ShaderPass(VignetteGradeShader);
+    composer.addPass(vignette);
+
+    // Controls: V toggle, 1/2/3 tweak L/G/G (Shift = negative)
+    addEventListener('keydown', (e)=>{
+      const k = e.key;
+      if (k==='v'||k==='V') vignette.enabled = !vignette.enabled;
+      const step = e.shiftKey ? -0.1 : 0.1;
+      if (k==='1') vignette.uniforms.lift.value.addScalar(step);
+      if (k==='2') vignette.uniforms.gamma.value.addScalar(step);
+      if (k==='3') vignette.uniforms.gain.value.addScalar(step);
+    });
+
+    // Resize
+    addEventListener('resize', ()=>{
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // RAF
+    function loop(){ updateCamera(); composer.render(); requestAnimationFrame(loop); }
+    loop();
+
+  } catch (e) { showErr(e); }
+})();
+</script>
+</body>
+</html>

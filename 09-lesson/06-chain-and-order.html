@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lesson 09 · Step 6/7 — Chain & Order</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
+  #app{width:100%;height:100%}
+  .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.55);border-radius:8px;color:#fff;font:14px monospace}
+  .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.5);border-radius:8px;color:#fff;font:12px monospace}
+  .error{position:fixed;left:8px;right:8px;bottom:8px;padding:10px;border-radius:10px;background:#2a0000;color:#ffd2d2;font:12px/1.4 monospace;white-space:pre-wrap;max-height:40%;overflow:auto;display:none}
+</style>
+
+<!-- Import map so examples/jsm can resolve "three" -->
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.158.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="label" class="overlay">Lesson 09 · Step 6/7 — Chain & Order (Preset: 1 — FXAA→Bloom)</div>
+<div class="help">
+  Presets <b>1</b>=FXAA→Bloom · <b>2</b>=Bloom→FXAA · <b>Space</b>=toggle · Bloom <b>[</b>/<b>]</b> strength · <b>;</b>/<b>'</b> radius · <b>,</b>/<b>.</b> threshold · DPR <b>P</b> · Neon <b>D</b> · Drag=orbit · Shift+Drag=pan · Wheel=dolly
+</div>
+<div id="err" class="error"></div>
+
+<script type="module">
+const showErr = (e) => { const el=document.getElementById('err'); el.style.display='block'; el.textContent=(e&&(e.stack||e.message))||String(e); };
+
+(async () => {
+  try {
+    const THREE = await import('three');
+    const { EffectComposer }  = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js');
+    const { RenderPass }      = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js');
+    const { ShaderPass }      = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js');
+    const { FXAAShader }      = await import('https://unpkg.com/three@0.158.0/examples/jsm/shaders/FXAAShader.js');
+    const { UnrealBloomPass } = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js');
+
+    const app = document.getElementById('app');
+    const label = document.getElementById('label');
+
+    // Renderer (force DPR=1 so aliasing is visible; toggle with P)
+    const renderer = new THREE.WebGLRenderer({ antialias:false });
+    app.appendChild(renderer.domElement);
+    let useDPR1 = true;
+    function applyDPR(){ renderer.setPixelRatio(useDPR1 ? 1 : Math.min(window.devicePixelRatio||1,2)); }
+    applyDPR();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x0e0e12);
+    if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    else if ('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    // Scene (keep Lesson 8 scaffold)
+    const scene = new THREE.Scene();
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(20,20),
+      new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95 })
+    );
+    ground.rotation.x = -Math.PI/2; ground.position.y = -1; scene.add(ground);
+
+    const grid = new THREE.GridHelper(20,20,0x3a456f,0x2b3350);
+    grid.position.y = -0.999; scene.add(grid);
+
+    const mat1 = new THREE.MeshStandardMaterial({ color:0x88ccff, roughness:0.35, emissive:0x223344, emissiveIntensity:0.25 });
+    const mat2 = new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55, emissive:0x442200, emissiveIntensity:0.18 });
+    const mat3 = new THREE.MeshPhysicalMaterial({ color:0xD4AF37, metalness:1, roughness:0.2, emissive:0x111111, emissiveIntensity:0.1 });
+
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48), mat1);
+    const cube   = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), mat2);
+    const pyramid= new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5), mat3);
+    sphere.position.x = -3; pyramid.position.x = 3;
+    scene.add(sphere, cube, pyramid);
+
+    // Neon helper (thin bright edges) — toggle with D
+    const demoGroup = new THREE.Group();
+    (() => {
+      const neonMat = new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xffffff, emissiveIntensity:1.1, roughness:0.2, metalness:0.2 });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.035, 24, 256), neonMat);
+      ring.position.set(0, 0.6, -1.4); ring.rotation.x = Math.PI * 0.5;
+      const mkStrip = (len,thk)=> new THREE.Mesh(new THREE.BoxGeometry(len, thk, thk), neonMat);
+      const s1 = mkStrip(11, 0.03); s1.position.set(0,1.1,0); s1.rotation.z = 0.10*Math.PI;
+      const s2 = mkStrip(11, 0.03); s2.position.set(0,0.2,0); s2.rotation.z = -0.12*Math.PI;
+      demoGroup.add(ring,s1,s2);
+      scene.add(demoGroup);
+    })();
+    let demoOn = true;
+
+    // Lights (same as L08)
+    scene.add(new THREE.AmbientLight(0xffffff,0.35));
+    const dir = new THREE.DirectionalLight(0xffffff,1); dir.position.set(6,10,6);
+    scene.add(dir);
+
+    // Camera + manual orbit/pan/dolly
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 300);
+    let theta=-0.4, phi=0.30, distance=9, panX=0, panY=0;
+    function updateCamera(){
+      const cx=panX, cy=panY, cz=0;
+      const x=cx+distance*Math.cos(phi)*Math.cos(theta);
+      const y=cy+distance*Math.sin(phi);
+      const z=cz+distance*Math.cos(phi)*Math.sin(theta);
+      camera.position.set(x,y,z);
+      camera.lookAt(cx,cy,cz);
+    }
+    updateCamera();
+
+    // Inputs
+    let isDown=false,lastX=0,lastY=0,shift=false;
+    renderer.domElement.addEventListener('pointerdown',e=>{isDown=true;lastX=e.clientX;lastY=e.clientY;shift=e.shiftKey;});
+    addEventListener('pointerup',()=>isDown=false);
+    addEventListener('pointermove',e=>{
+      if(!isDown) return;
+      const dx=(e.clientX-lastX)/window.innerWidth, dy=(e.clientY-lastY)/window.innerHeight;
+      if(shift){ panX-=dx*6; panY+=dy*6; } else { theta-=dx*3.2; phi=Math.max(-1.2,Math.min(1.2,phi-dy*2.4)); }
+      lastX=e.clientX; lastY=e.clientY; updateCamera();
+    });
+    addEventListener('wheel',e=>{ distance=Math.max(3,Math.min(40,distance+Math.sign(e.deltaY)*0.8)); updateCamera(); }, {passive:true});
+
+    // Composer + passes
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    // FXAA
+    const fxaa = new ShaderPass(FXAAShader);
+    function setFXAARes(){ fxaa.material.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight); }
+    setFXAARes();
+
+    // Bloom (tuned to avoid blowout; threshold high so order matters)
+    const bloom = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.0,   // strength
+      0.55,  // radius
+      0.82   // threshold (↑ so jaggy peaks cross it more than AA'ed ones)
+    );
+
+    // Presets
+    let preset = 1; // 1: FXAA→Bloom, 2: Bloom→FXAA
+    function applyPreset(p){
+      composer.passes.length = 1; // keep only renderPass
+      if(p===1){ composer.addPass(fxaa); composer.addPass(bloom); label.textContent = "Lesson 09 · Step 6/7 — Chain & Order (Preset: 1 — FXAA→Bloom)"; }
+      if(p===2){ composer.addPass(bloom); composer.addPass(fxaa); label.textContent = "Lesson 09 · Step 6/7 — Chain & Order (Preset: 2 — Bloom→FXAA)"; }
+      preset = p;
+    }
+    applyPreset(1);
+
+    // Controls
+    addEventListener('keydown',(e)=>{
+      const k=e.key;
+      if(k==='1') applyPreset(1);
+      if(k==='2') applyPreset(2);
+      if(k===' '){ applyPreset(preset===1?2:1); } // space toggles
+
+      if(k==='[') bloom.strength = Math.max(0, bloom.strength - 0.05);
+      if(k===']') bloom.strength = Math.min(5, bloom.strength + 0.05);
+      if(k===';') bloom.radius   = Math.max(0, bloom.radius   - 0.05);
+      if(k==="'") bloom.radius   = Math.min(5, bloom.radius   + 0.05);
+      if(k===',') bloom.threshold= Math.max(0, bloom.threshold- 0.02);
+      if(k==='.') bloom.threshold= Math.min(1, bloom.threshold+ 0.02);
+
+      if(k.toLowerCase()==='d'){ demoOn=!demoOn; demoGroup.visible=demoOn; }
+      if(k.toLowerCase()==='p'){ useDPR1=!useDPR1; applyDPR(); onResize(); }
+    });
+
+    // Resize
+    function onResize(){
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+      composer.setSize(window.innerWidth, window.innerHeight);
+      bloom.setSize(window.innerWidth, window.innerHeight);
+      setFXAARes();
+    }
+    addEventListener('resize', onResize);
+
+    // RAF
+    function loop(){ updateCamera(); composer.render(); requestAnimationFrame(loop); }
+    loop();
+
+  } catch (e) { showErr(e); }
+})();
+</script>
+</body>
+</html>

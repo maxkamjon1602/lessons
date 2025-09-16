@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Lesson 09 · Step 1/7 — Composer setup</title>
+<title>Lesson 09 · Step 5/7 — Bokeh DoF</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
   #app{width:100%;height:100%}
@@ -12,7 +12,7 @@
   .error{position:fixed;left:8px;right:8px;bottom:8px;padding:10px;border-radius:10px;background:#2a0000;color:#ffd2d2;font:12px/1.4 monospace;white-space:pre-wrap;max-height:40%;overflow:auto;display:none}
 </style>
 
-<!-- ⭐ Import map so examples/jsm modules can resolve "three" -->
+<!-- Import map so examples/jsm modules can resolve "three" -->
 <script type="importmap">
 {
   "imports": {
@@ -23,8 +23,8 @@
 </head>
 <body>
 <div id="app"></div>
-<div class="overlay">Lesson 09 · Step 1/7 — Composer setup</div>
-<div class="help">Drag=orbit · Shift+Drag=pan · Wheel=dolly</div>
+<div class="overlay">Lesson 09 · Step 5/7 — Bokeh DoF</div>
+<div class="help">Focus: <b>←</b>/<b>→</b> · Aperture: <b>↑</b>/<b>↓</b> · Drag=orbit · Shift+Drag=pan · Wheel=dolly</div>
 <div id="err" class="error"></div>
 
 <script type="module">
@@ -36,15 +36,16 @@ const showErr = (e) => {
 
 (async () => {
   try {
-    // Import using the same CDN/version as Lesson 8 + import map for "three"
+    // Imports via import map + explicit examples URLs (same version as previous steps)
     const THREE = await import('three');
     const { EffectComposer } = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js');
     const { RenderPass }     = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js');
+    const { BokehPass }      = await import('https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/BokehPass.js');
 
     const app = document.getElementById('app');
 
-    // Renderer (match L08 style)
-    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias:false });
     app.appendChild(renderer.domElement);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -56,30 +57,26 @@ const showErr = (e) => {
     }
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
-    // Scene
+    // Scene (same scaffold; objects slightly staggered in Z so DoF is visible)
     const scene = new THREE.Scene();
 
-    // Ground + grid (same scaffold)
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(20,20),
       new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95 })
     );
-    ground.rotation.x = -Math.PI/2;
-    ground.position.y = -1;
-    scene.add(ground);
+    ground.rotation.x = -Math.PI/2; ground.position.y = -1; scene.add(ground);
 
     const grid = new THREE.GridHelper(20,20,0x3a456f,0x2b3350);
-    grid.position.y = -0.999;
-    scene.add(grid);
+    grid.position.y = -0.999; scene.add(grid);
 
-    // Objects
     const mat1 = new THREE.MeshStandardMaterial({ color:0x88ccff, roughness:0.35 });
     const mat2 = new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55 });
     const mat3 = new THREE.MeshPhysicalMaterial({ color:0xD4AF37, metalness:1, roughness:0.2 });
-    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48), mat1);
-    const cube   = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), mat2);
-    const pyramid= new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5), mat3);
-    sphere.position.x = -3; pyramid.position.x = 3;
+
+    // Minimal deviation: spread objects in depth for clearer DoF demo
+    const sphere  = new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48), mat1); sphere.position.set(-4, 0, -3);
+    const cube    = new THREE.Mesh(new THREE.BoxGeometry(2,2,2),        mat2); cube.position.set( 0, 0,  0);
+    const pyramid = new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5),   mat3); pyramid.position.set( 4,-0.1, 4);
     scene.add(sphere, cube, pyramid);
 
     // Lights (same as L08)
@@ -87,9 +84,9 @@ const showErr = (e) => {
     const dir = new THREE.DirectionalLight(0xffffff,1); dir.position.set(6,10,6);
     scene.add(dir);
 
-    // Camera + manual orbit/pan/dolly (same math as L08)
+    // Camera + manual orbit/pan/dolly (same math)
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 300);
-    let theta=-0.4, phi=0.30, distance=9, panX=0, panY=0;
+    let theta=-0.4, phi=0.26, distance=12, panX=0, panY=0; // a touch farther for DoF context
     function updateCamera(){
       const cx=panX, cy=panY, cz=0;
       const x=cx+distance*Math.cos(phi)*Math.cos(theta);
@@ -100,7 +97,7 @@ const showErr = (e) => {
     }
     updateCamera();
 
-    // Input handlers
+    // Inputs
     let isDown=false,lastX=0,lastY=0,shift=false;
     renderer.domElement.addEventListener('pointerdown',e=>{isDown=true;lastX=e.clientX;lastY=e.clientY;shift=e.shiftKey;});
     addEventListener('pointerup',()=>isDown=false);
@@ -117,9 +114,27 @@ const showErr = (e) => {
       updateCamera();
     }, {passive:true});
 
-    // Composer
+    // Composer + Bokeh DoF
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
+
+    // Bokeh params: focus ≈ distance to mid object; aperture controls blur intensity
+    const bokeh = new BokehPass(scene, camera, {
+      focus: 8.0,        // try 6..14
+      aperture: 0.00025, // smaller = sharper; larger = blurrier
+      maxblur: 0.012,
+      width:  window.innerWidth,
+      height: window.innerHeight
+    });
+    composer.addPass(bokeh);
+
+    // Controls: focus & aperture
+    addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') bokeh.materialBokeh.uniforms.focus.value   += 0.5;
+      if (e.key === 'ArrowLeft')  bokeh.materialBokeh.uniforms.focus.value   -= 0.5;
+      if (e.key === 'ArrowUp')    bokeh.materialBokeh.uniforms.aperture.value = Math.min(0.01, bokeh.materialBokeh.uniforms.aperture.value + 0.0001);
+      if (e.key === 'ArrowDown')  bokeh.materialBokeh.uniforms.aperture.value = Math.max(0.00005, bokeh.materialBokeh.uniforms.aperture.value - 0.0001);
+    });
 
     // Resize
     addEventListener('resize', ()=>{
@@ -133,9 +148,7 @@ const showErr = (e) => {
     function loop(){ updateCamera(); composer.render(); requestAnimationFrame(loop); }
     loop();
 
-  } catch (e) {
-    showErr(e);
-  }
+  } catch (e) { showErr(e); }
 })();
 </script>
 </body>

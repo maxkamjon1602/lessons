@@ -189,5 +189,5 @@ This repository contains **step-by-step lessons** that teach **3D graphics, inte
 ---
 
 <p align="center">
-  🌟 Built with ❤️ and Three.js · <strong>Learn · Try · @maxkamjon.abdumannobov</strong>
+  🌟 Built with ❤️ and Three.js · UZ · <strong>Learn · Try · @maxkamjon.abdumannobov</strong>
 </p>
