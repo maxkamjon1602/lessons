@@ -49,10 +49,10 @@ function addTriangle(x,y,w,h,color){
   return mesh;
 }
 const group = new THREE.Group();
-const square = addSquare(80,80,120,0xffffff);
+const square = addSquare(80,100,120,0xffffff);
 const triangle = addTriangle(240,100,140,120,0x00ccff);
 group.add(square); group.add(triangle);
-group.position.set(60, 40, 0); // move whole group
+group.position.set(0, 0, 0);
 scene.add(group);
 
 function tick() { resize(); renderer.render(scene, cam); requestAnimationFrame(tick); }
