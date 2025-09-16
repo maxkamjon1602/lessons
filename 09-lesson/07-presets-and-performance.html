@@ -28,6 +28,10 @@
 <div id="err" class="error"></div>
 
 <script type="module">
+// SPDX-License-Identifier: LicenseRef-UT-PEL-1.0
+// Copyright (c) 2025 UZ Learn Try. All rights reserved.
+
+
 const showErr = (e)=>{const el=document.getElementById('err'); el.style.display='block'; el.textContent=(e&&(e.stack||e.message))||String(e);};
 
 (async()=>{
