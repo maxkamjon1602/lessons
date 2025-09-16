@@ -1,3 +1,8 @@
+## License
+This project is licensed under the **UZ Learn Try Personal Education License (UT-PEL) v1.0**.  
+**Not** open source. **Personal self-learning only.** No redistribution, no public hosting, no derivatives, no commercial or instructional use, and no AI/data-mining. See [LICENSE](./LICENSE).
+
+
 # Lesson 4 — First Taste of 3D (Fixed, Structured, and Demo-Ready) 🎲📐
 
 This lesson moves from **2D (orthographic)** canvases to a **true 3D** scene using Three.js. You’ll switch cameras, place objects at different depths, and toggle between **2D shapes** and their **3D counterparts** using a clean visibility system built on **groups**.

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lesson 10 · Step 1/7 — Ortho Side View</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
+  #app{width:100%;height:100%}
+  .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.55);border-radius:8px;color:#fff;font:14px monospace}
+  .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.5);border-radius:8px;color:#fff;font:12px monospace}
+  .error{position:fixed;left:8px;right:8px;bottom:8px;padding:10px;border-radius:10px;background:#2a0000;color:#ffd2d2;font:12px/1.4 monospace;white-space:pre-wrap;max-height:40%;overflow:auto;display:none}
+</style>
+
+<!-- Import map so examples/jsm can resolve "three" if you add any later -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.158.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="mode" class="overlay">Lesson 10 · Step 1 — Ortho (P toggles)</div>
+<div class="help">Drag=pan · Wheel=zoom · Toggle Ortho/Persp: <b>P</b></div>
+<div id="err" class="error"></div>
+
+<script type="module">
+const showErr = (e) => {
+  const el = document.getElementById('err');
+  el.style.display = 'block';
+  el.textContent = (e && (e.stack || e.message)) || String(e);
+};
+
+(async () => {
+  try {
+    const THREE = await import('three');
+    const app = document.getElementById('app');
+    const modeEl = document.getElementById('mode');
+
+    // ----- Renderer -----
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    app.appendChild(renderer.domElement);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x0e0e12);
+    if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) {
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+    } else if ('outputEncoding' in renderer && THREE.sRGBEncoding) {
+      renderer.outputEncoding = THREE.sRGBEncoding;
+    }
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    // ----- Scene (same scaffold as Lesson 8) -----
+    const scene = new THREE.Scene();
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(20,20),
+      new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95 })
+    );
+    ground.rotation.x = -Math.PI/2; // lay flat
+    ground.position.y = -1;
+    scene.add(ground);
+
+    const grid = new THREE.GridHelper(20,20,0x3a456f,0x2b3350);
+    grid.position.y = -0.999;
+    scene.add(grid);
+
+    const mat1 = new THREE.MeshStandardMaterial({ color:0x88ccff, roughness:0.35 });
+    const mat2 = new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55 });
+    const mat3 = new THREE.MeshPhysicalMaterial({ color:0xD4AF37, metalness:1, roughness:0.2 });
+    const sphere  = new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48), mat1);
+    const cube    = new THREE.Mesh(new THREE.BoxGeometry(2,2,2),       mat2);
+    const pyramid = new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5),  mat3);
+    sphere.position.x = -3; pyramid.position.x = 3;
+    scene.add(sphere, cube, pyramid);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const dir = new THREE.DirectionalLight(0xffffff, 1);
+    dir.position.set(6,10,6);
+    scene.add(dir);
+
+    // ----- Cameras -----
+    // Ortho: world height in units visible at once (we'll resize with window)
+    let orthoHalfH = 6; // half-height in world units (default view)
+    const aspect = () => window.innerWidth / window.innerHeight;
+    const makeOrtho = () => {
+      const halfH = orthoHalfH;
+      const halfW = halfH * aspect();
+      const cam = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, 0.1, 1000);
+      cam.position.set(0, 0, 10); // look down -Z
+      cam.lookAt(0, 0, 0);
+      return cam;
+    };
+
+    // Perspective (comparison only)
+    let perspDist = 10;
+    const makePersp = () => {
+      const cam = new THREE.PerspectiveCamera(50, aspect(), 0.1, 1000);
+      cam.position.set(0, 0, perspDist);
+      cam.lookAt(0, 0, 0);
+      return cam;
+    };
+
+    let ortho = makeOrtho();
+    let persp = makePersp();
+    let usingOrtho = true;
+    let camera = ortho;
+
+    // Pan state (shared by both cameras)
+    let camX = 0, camY = 0;
+
+    function updateCameras() {
+      if (usingOrtho) {
+        const halfH = orthoHalfH;
+        const halfW = halfH * aspect();
+        ortho.left   = -halfW + camX;
+        ortho.right  =  halfW + camX;
+        ortho.top    =  halfH + camY;
+        ortho.bottom = -halfH + camY;
+        ortho.updateProjectionMatrix();
+        // keep z fixed; lookAt keeps lights/shadows consistent
+        ortho.position.set(camX, camY, 10);
+        ortho.lookAt(camX, camY, 0);
+      } else {
+        // For perspective, pan by translating camera and its lookAt target together.
+        camera = persp;
+        persp.aspect = aspect();
+        persp.updateProjectionMatrix();
+        persp.position.set(camX, camY, perspDist);
+        persp.lookAt(camX, camY, 0);
+      }
+      camera = usingOrtho ? ortho : persp;
+      modeEl.textContent = `Lesson 10 · Step 1 — ${usingOrtho ? 'Ortho' : 'Perspective'} (P toggles)`;
+    }
+    updateCameras();
+
+    // ----- Input: drag to pan, wheel to zoom -----
+    let isDown=false, lastX=0, lastY=0;
+    renderer.domElement.addEventListener('pointerdown', (e)=>{
+      isDown=true; lastX=e.clientX; lastY=e.clientY;
+    });
+    addEventListener('pointerup', ()=>{ isDown=false; });
+    addEventListener('pointermove', (e)=>{
+      if(!isDown) return;
+      const dx = (e.clientX - lastX) / window.innerWidth;
+      const dy = (e.clientY - lastY) / window.innerHeight;
+      if (usingOrtho) {
+        // Pan in world units based on current frustum size
+        const halfH = orthoHalfH;
+        const halfW = halfH * aspect();
+        camX -= dx * (halfW * 2);
+        camY += dy * (halfH * 2);
+      } else {
+        // For perspective, map screen drag to world-ish pan (scaled by distance and fov)
+        const worldH = 2 * Math.tan((Math.PI/180)* (camera.fov/2)) * perspDist;
+        const worldW = worldH * aspect();
+        camX -= dx * worldW;
+        camY += dy * worldH;
+      }
+      lastX = e.clientX; lastY = e.clientY;
+      updateCameras();
+    });
+
+    addEventListener('wheel', (e)=>{
+      if (usingOrtho) {
+        // Zoom by changing half-height (frustum size)
+        const scale = 1 + Math.sign(e.deltaY) * 0.08;
+        orthoHalfH = THREE.MathUtils.clamp(orthoHalfH * scale, 2, 40);
+      } else {
+        // Dolly for perspective
+        perspDist = THREE.MathUtils.clamp(perspDist + Math.sign(e.deltaY) * 0.8, 3, 80);
+      }
+      updateCameras();
+    }, { passive:true });
+
+    // Toggle cameras
+    addEventListener('keydown', (e)=>{
+      if (e.key.toLowerCase() === 'p') {
+        usingOrtho = !usingOrtho;
+        updateCameras();
+      }
+    });
+
+    // Resize
+    addEventListener('resize', ()=>{
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // Rebuild persp aspect; ortho frustum recalculated inside updateCameras
+      persp.aspect = aspect();
+      persp.updateProjectionMatrix();
+      updateCameras();
+    });
+
+    // ----- Loop -----
+    function loop(){
+      updateCameras();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+  } catch (e) {
+    showErr(e);
+  }
+})();
+</script>
+</body>
+</html>

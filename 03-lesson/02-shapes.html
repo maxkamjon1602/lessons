@@ -65,8 +65,8 @@ function getMouseScenePos(e){
   return {x,y};
 }
 
-const square = addSquare(80,80,120,0xffffff);
-const triangle = addTriangle(260,100,140,120,0x00ccff);
+const square = addSquare(80,100,120,0xffffff);
+const triangle = addTriangle(240,100,140,120,0x00ccff);
 scene.add(square); scene.add(triangle);
 function tick(){ resize(); renderer.render(scene, cam); requestAnimationFrame(tick); }
 requestAnimationFrame(tick);

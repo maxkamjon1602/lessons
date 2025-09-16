@@ -1,7 +1,16 @@
+## License
+This project is licensed under the **UZ Learn Try Personal Education License (UT-PEL) v1.0**.  
+**Not** open source. **Personal self-learning only.** No redistribution, no public hosting, no derivatives, no commercial or instructional use, and no AI/data-mining. See [LICENSE](./LICENSE).
+
+---
+
 # 🌌 uz learn try — Interactive Coding Lessons
 
 Welcome to **uz learn try** — the companion codebase for my [YouTube channel](https://www.youtube.com/@uzbeksniperyt) 🎥.  
 This repository contains **step-by-step lessons** that teach **3D graphics, interactivity, and creative coding** using [Three.js](https://threejs.org/) and modern web tech.
+
+<strong>Remember!</strong> All materials in this repository are copyrighted. It can be used only for self educational purposes.
+Please respect author's hardwork.
 
 ---
 
@@ -191,3 +200,4 @@ This repository contains **step-by-step lessons** that teach **3D graphics, inte
 <p align="center">
   🌟 Built with ❤️ and Three.js · UZ · <strong>Learn · Try · @maxkamjon.abdumannobov</strong>
 </p>
+Copyright (c) 2025 UZ Learn Try. All rights reserved.

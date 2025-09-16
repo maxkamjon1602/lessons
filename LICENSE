@@ -1,0 +1,46 @@
+UZ Learn Try Personal Education License (UT-PEL) v1.0
+Copyright (c) 2025 Millionaire. All rights reserved.
+
+1) Definitions
+“Materials” means all source code, binaries, assets, text, images, videos, documents, and other files in this repository (the “Repo”).
+“Personal Educational Use” means private, non-commercial use by a single natural person for the sole purpose of self-education, without any distribution, publication, or use to create or deliver products, services, or content for others.
+
+2) Grant
+Subject to full compliance with this License, you are granted a limited, revocable, non-exclusive, non-transferable license to:
+  a. Clone and locally store the Materials;
+  b. View, run, and study the Materials on your own devices; and
+  c. Make minimal, transient modifications strictly necessary to run the Materials on your own devices,
+solely for Personal Educational Use.
+
+3) Prohibitions (You MAY NOT)
+  a. Commercial Use: Use the Materials, or any part thereof, directly or indirectly, for commercial advantage or monetary compensation, including paid teaching/tutoring, ads, sponsorships, affiliate links, or monetized content.
+  b. Distribution: Share, publish, repost, mirror, sublicense, sell, rent, lease, lend, or otherwise redistribute the Materials (including within public repos, gists, packages, app stores, course platforms, or cloud notebooks).
+  c. Public Display/Hosting: Host or make the Materials—or derivatives—publicly accessible in any form (including websites, demos, portfolios, videos, streams, or social media).
+  d. Derivative Works: Modify the Materials to create derivative works beyond the minimal, transient modifications strictly necessary for local execution, or combine them with other works for any release or publication.
+  e. Data Mining & AI Training: Use the Materials (or outputs) to train, fine-tune, evaluate, or improve any AI/ML systems; include them in datasets; or perform scraping/mining/crawling.
+  f. Reverse Engineering of Licenses/DRM: Circumvent or remove any notices, metadata, or technical measures related to this License.
+  g. Trademark/Branding: Use the “UZ LEARN TRY” name, logos, or any branding to suggest endorsement, except to accurately cite copyright.
+
+4) Third-Party Components
+Files identified as third-party or under separate licenses remain governed by their respective licenses. Nothing here grants rights to third-party content.
+
+5) Attribution & Notices
+You must retain all copyright notices and this License in any local copies. Do not remove or alter headers or notices.
+
+6) No Warranty
+THE MATERIALS ARE PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTY OF ANY KIND. USE IS AT YOUR OWN RISK.
+
+7) Limitation of Liability
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY CLAIMS, DAMAGES, OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM OR IN CONNECTION WITH THE MATERIALS OR THIS LICENSE.
+
+8) Termination
+This License terminates automatically upon any breach. Upon termination, you must immediately stop using the Materials and delete all local copies (except to the extent required by law). Rights granted are otherwise revocable at any time.
+
+9) Governing Law & Venue
+This License is governed by the laws of England and Wales, and disputes shall be resolved exclusively in the courts of England and Wales.
+
+10) No Waiver; Severability
+Failure to enforce any provision is not a waiver. If any provision is unenforceable, it will be modified to the minimum extent necessary to be enforceable; the remainder remains in effect.
+
+11) Contact for Permissions
+For uses beyond Personal Educational Use (e.g., teaching, portfolio, demos, commercial), contact the copyright holder for a separate written license.

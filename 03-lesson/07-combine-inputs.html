@@ -66,16 +66,17 @@ function getMouseScenePos(e){
 }
 
 const sqSize=120, triW=140, triH=120;
-const start = {x:160,y:160};
+const start = {x:80,y:100};
+const triStart = {x:240,y:100};
 const square = addSquare(start.x,start.y,sqSize,0xffffff);
-const triangle = addTriangle(420,200,triW,triH,0x00ccff);
+const triangle = addTriangle(triStart.x,triStart.y,triW,triH,0x00ccff);
 scene.add(square); scene.add(triangle);
 
 // keyboard (square)
 const keys = {ArrowLeft:false,ArrowRight:false,ArrowUp:false,ArrowDown:false};
 addEventListener('keydown', e=>{
   if(e.key in keys){ keys[e.key]=true; e.preventDefault(); }
-  if(e.code==='Space'){ square.position.set(start.x+sqSize/2, start.y+sqSize/2, 0); e.preventDefault(); }
+  if(e.code==='Space'){ square.position.set(start.x+sqSize/2, start.y+sqSize/2, 0); triangle.position.set(triStart.x, triStart.y, 0); e.preventDefault(); }
 });
 addEventListener('keyup',   e=>{ if(e.key in keys){ keys[e.key]=false; e.preventDefault(); } });
 
