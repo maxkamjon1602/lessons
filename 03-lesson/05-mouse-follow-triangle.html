@@ -65,9 +65,9 @@ function getMouseScenePos(e){
   return {x,y};
 }
 
-const square = addSquare(120,120,120,0xffffff);
+const square = addSquare(80,80,120,0xffffff);
 const triW=140, triH=120;
-const triangle = addTriangle(360,160,triW,triH,0x00ccff);
+const triangle = addTriangle(240,100,triW,triH,0x00ccff);
 scene.add(square); scene.add(triangle);
 
 addEventListener('mousemove', e=>{
