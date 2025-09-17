@@ -1,3 +1,9 @@
+## License
+This project is licensed under the **UZ Learn Try Personal Education License (UT-PEL) v1.0**.  
+**Not** open source. **Personal self-learning only.** No redistribution, no public hosting, no derivatives, no commercial or instructional use, and no AI/data-mining. See [LICENSE](../LICENSE).
+
+---
+
 # Lesson 10 — Side-View Camera Rig for 2.5D (Three.js)
 
 This lesson turns your scene into a **side-view camera system** for a 2D game inside a 3D world: dead‑zone follow → parallax layers → tiling BG/FG → world bounds + clamp → visual presets.
@@ -57,3 +63,11 @@ This lesson turns your scene into a **side-view camera system** for a 2D game in
 - **Presets & Polish:** visual mode toggle, letterbox, reset, robust perspective switch.
 
 — Updated 2025-09-17 13:37 UTC
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.
