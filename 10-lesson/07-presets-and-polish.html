@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lesson 10 · Step 7/7 — Visual Presets & Polish (FIX2)</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
+  #app{width:100%;height:100%}
+  .overlay{position:fixed;top:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.55);border-radius:8px;color:#fff;font:14px/1.3 monospace}
+  .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;background:rgba(0,0,0,.5);border-radius:8px;color:#fff;font:12px/1.35 monospace}
+  .error{position:fixed;left:8px;right:8px;bottom:8px;padding:10px;border-radius:10px;background:#2a0000;color:#ffd2d2;font:12px/1.4 monospace;white-space:pre-wrap;max-height:40%;overflow:auto;display:none}
+  #safe{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;border:1px dashed rgba(255,255,255,.35)}
+  #dz  {position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;border:2px solid rgba(255,255,255,.85)}
+  #mask{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.62);display:none}
+</style>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.158.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="mode" class="overlay">L10 · Step 7 — Filmic · 64 px/u · DZ 40%×30%</div>
+<div class="help">
+  Move: <b>A/D</b> · Vertical test: <b>W/S</b> · DZ size: <b>[</b>/<b>]</b>, <b>;</b>/<b>'</b> ·
+  Visual: <b>V</b> Filmic/Pixel · Mask: <b>O</b> · Reset: <b>R</b> ·
+  Clamp: <b>M</b> · Bounds: <b>B</b> · World: <b>-</b>/<b>=</b> (W), <b>,</b>/<b>.</b> (H) ·
+  Parallax: <b>1/2/3/4</b> · Bars: <b>H</b> · Tiles: <b>T</b> · Ortho/Persp: <b>P</b> · PPU: <b>K</b>/<b>L</b> · Auto-run: <b>Space</b>
+</div>
+<div id="safe"></div>
+<div id="dz"></div>
+<div id="mask"></div>
+<div id="err" class="error"></div>
+
+<script type="module">
+const showErr = (e) => { const el=document.getElementById('err'); el.style.display='block'; el.textContent=(e&&(e.stack||e.message))||String(e); };
+
+(async()=>{
+try{
+  const THREE = await import('three');
+
+  const app    = document.getElementById('app');
+  const modeEl = document.getElementById('mode');
+  const safeEl = document.getElementById('safe');
+  const dzEl   = document.getElementById('dz');
+  const maskEl = document.getElementById('mask');
+
+  // ---- Visual style flag (must be before first use) ----
+  let stylePixel = false; // false = Filmic (DPR aware), true = Pixel-Art (DPR=1 + pixel-snap)
+
+  // ----- Renderer -----
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  app.appendChild(renderer.domElement);
+  const setRendererSize = ()=> renderer.setSize(window.innerWidth, window.innerHeight);
+  function setPixelRatioForStyle(){
+    if(stylePixel){ renderer.setPixelRatio(1); renderer.domElement.style.imageRendering='pixelated'; }
+    else{ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); renderer.domElement.style.imageRendering='auto'; }
+  }
+  renderer.setClearColor(0x0e0e12);
+  if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+  else if ('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  setRendererSize(); setPixelRatioForStyle();
+
+  // ----- Scene root -----
+  const scene = new THREE.Scene();
+
+  // Layer groups (bg < 1 < fg)
+  const bg  = new THREE.Group();  bg.userData.parallax  = 0.25;
+  const mid = new THREE.Group();  mid.userData.parallax = 1.00;
+  const fg  = new THREE.Group();  fg.userData.parallax  = 1.50;
+  bg.position.z  = -10; mid.position.z = 0; fg.position.z = 10;
+  scene.add(bg, mid, fg);
+
+  // ----- Background sky (no depth so it never occludes tiles) -----
+  const skyMat = new THREE.ShaderMaterial({
+    uniforms:{ top:{value:new THREE.Color(0x1a2030)}, bottom:{value:new THREE.Color(0x0c0f18)} },
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`uniform vec3 top; uniform vec3 bottom; varying vec2 vUv;
+      void main(){ vec3 c = mix(bottom, top, clamp(vUv.y,0.0,1.0)); gl_FragColor=vec4(c,1.0); }`
+  });
+  skyMat.depthWrite=false; skyMat.depthTest=false;
+  const sky = new THREE.Mesh(new THREE.PlaneGeometry(1,1), skyMat);
+  sky.renderOrder = -100; bg.add(sky);
+
+  // ----- Mid layer: scaffold -----
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshStandardMaterial({ color:0x232736, roughness:0.95 }));
+  ground.rotation.x = -Math.PI/2; ground.position.y = -1; mid.add(ground);
+  const grid = new THREE.GridHelper(20,20,0x3a456f,0x2b3350); grid.position.y = -0.999; mid.add(grid);
+  const mat1 = new THREE.MeshStandardMaterial({ color:0x88ccff, roughness:0.35 });
+  const mat2 = new THREE.MeshStandardMaterial({ color:0xffc36e, roughness:0.55 });
+  const mat3 = new THREE.MeshPhysicalMaterial({ color:0xD4AF37, metalness:1, roughness:0.2 });
+  const sphere  = new THREE.Mesh(new THREE.SphereGeometry(1.2,48,48), mat1);
+  const cube    = new THREE.Mesh(new THREE.BoxGeometry(2,2,2),       mat2);
+  const pyramid = new THREE.Mesh(new THREE.ConeGeometry(1.1,1.8,5),  mat3);
+  sphere.position.x = -3; pyramid.position.x = 3; mid.add(sphere, cube, pyramid);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff,0.35));
+  const dir = new THREE.DirectionalLight(0xffffff,1); dir.position.set(6,10,6); scene.add(dir);
+
+  // ----- FG accents -----
+  const fgMat = new THREE.MeshStandardMaterial({ color:0x2e3550, roughness:0.8 });
+  const mkStrip = (w,h,x,y)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,0.1), fgMat); m.position.set(x,y,0); return m; };
+  fg.add(mkStrip(5.5,0.14,-5.0,-0.5), mkStrip(4.0,0.12,0.0,-0.7), mkStrip(6.0,0.16,5.0,-0.6));
+
+  // ----- Debug bars (H) -----
+  const debug = new THREE.Group(); scene.add(debug);
+  function addBars(group, color, z){
+    const bars = new THREE.Group(); bars.position.z = z;
+    const mat = new THREE.MeshBasicMaterial({ color });
+    for(let i=-20;i<=20;i+=2){ const bar=new THREE.Mesh(new THREE.BoxGeometry(0.05,6,0.01),mat); bar.position.set(i,1.5,0); bars.add(bar); }
+    group.add(bars); return bars;
+  }
+  const barsBG  = addBars(debug, 0x4a78ff, -9);
+  const barsMID = addBars(debug, 0xffffff,  0);
+  const barsFG  = addBars(debug, 0xff7a4a,  9);
+  debug.visible = false;
+
+  // ----- Tiling (BG/FG) -----
+  let showTileBounds=false;
+  const boundsMat = new THREE.LineBasicMaterial({ color: 0x66ccff });
+  function makeBounds(w,h){
+    const g=new THREE.BufferGeometry();
+    const p=new Float32Array([
+      -w/2,-h/2,0,  w/2,-h/2,0,
+       w/2,-h/2,0,  w/2, h/2,0,
+       w/2, h/2,0, -w/2, h/2,0,
+      -w/2, h/2,0, -w/2,-h/2,0
+    ]);
+    g.setAttribute('position', new THREE.BufferAttribute(p,3));
+    return new THREE.LineSegments(g,boundsMat);
+  }
+  function makeTiling(parent, o){
+    const group=new THREE.Group(); group.position.z = o.zLocal||0;
+    const tiles=[];
+    for(let i=0;i<o.count;i++){
+      const tile=o.buildTile(i); tile.position.y=o.y||0;
+      if(o.zebra && (i%2===1)){
+        tile.traverse(n=>{ if(n.isMesh&&n.material){ n.material=n.material.clone(); n.material.color?.offsetHSL(0,0,0.06);} });
+      }
+      const b=makeBounds(o.tileW,o.tileH); b.visible=showTileBounds; tile.add(b);
+      group.add(tile); tiles.push({root:tile,bounds:b});
+    }
+    parent.add(group);
+    return { group, tiles, tileW:o.tileW, tileH:o.tileH, y:o.y||0, count:o.count };
+  }
+  function updateTiling(t, f){
+    const [halfW]=visibleUnits();
+    const xLmin = -halfW + f*camX;
+    const first = Math.floor(xLmin / t.tileW) - 1;
+    for(let i=0;i<t.count;i++){
+      const idx = first + i;
+      const xLocal = (idx + 0.5)*t.tileW;
+      t.tiles[i].root.position.x = xLocal;
+      t.tiles[i].root.position.y = t.y;
+      t.tiles[i].bounds.visible = showTileBounds;
+    }
+  }
+  const bgMat = new THREE.MeshStandardMaterial({ color:0x161b28, roughness:1 });
+  function buildBgTile(){
+    const g=new THREE.Group(), w=6, d=0.2;
+    const add=(bw,bh,bx)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,d),bgMat); m.position.set(bx,-0.2+bh*0.5,0); g.add(m); };
+    add(2.4,0.9,-1.8); add(1.6,1.2,0.0); add(2.2,1.0,1.9);
+    const ledge=new THREE.Mesh(new THREE.BoxGeometry(w,0.06,d),bgMat); ledge.position.set(0,0.1,0); g.add(ledge); return g;
+  }
+  const fgTileMat = new THREE.MeshStandardMaterial({ color:0x2e3550, roughness:0.8 });
+  function buildFgTile(){
+    const g=new THREE.Group(), w=5, d=0.1;
+    const left = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.1,d), fgTileMat); left.position.set(-w*0.25,-0.6,0); g.add(left);
+    const right= new THREE.Mesh(new THREE.BoxGeometry(3.5,0.12,d), fgTileMat); right.position.set( w*0.25,-0.55,0); g.add(right);
+    return g;
+  }
+  const bgTiles = makeTiling(bg, { tileW:6, tileH:1.6, y:-0.25, zLocal:+0.1, count:24, buildTile:buildBgTile, zebra:true });
+  const fgTiles = makeTiling(fg, { tileW:5, tileH:0.8, y:-0.60, zLocal: 0.0, count:24, buildTile:buildFgTile, zebra:true });
+
+  // ----- Cameras (pixel-consistent Ortho + Persp) -----
+  let PIXELS_PER_UNIT=64; const MIN_PPU=16, MAX_PPU=256;
+  const aspect = ()=> window.innerWidth / window.innerHeight;
+  const ortho = new THREE.OrthographicCamera(-1,1,1,-1,0.1,1000);
+  ortho.position.set(0,0,10); ortho.lookAt(0,0,0);
+  const persp = new THREE.PerspectiveCamera(50, aspect(), 0.1, 1000);
+  let perspDist=10; persp.position.set(0,0,perspDist); persp.lookAt(0,0,0);
+  let usingOrtho=true; let camera=ortho;
+
+  // Camera center & velocity (for follow)
+  let camX=0, camY=0, camVX=0, camVY=0;
+
+  // View sizes (world units)
+  function visibleUnitsOrtho(){ const halfH=(window.innerHeight/PIXELS_PER_UNIT)*0.5; return [halfH*aspect(), halfH]; }
+  function visibleUnitsPersp(){ const halfH=Math.tan((Math.PI/180)*(camera.fov/2))*perspDist; return [halfH*aspect(), halfH]; }
+  function visibleUnits(){ return usingOrtho?visibleUnitsOrtho():visibleUnitsPersp(); }
+  function sizeSky(){ const [halfW,halfH]=visibleUnits(); sky.scale.set(halfW*4, halfH*2, 1); }
+
+  function updateOrtho(){
+    const [halfW,halfH]=visibleUnitsOrtho();
+    ortho.left=-halfW+camX; ortho.right=halfW+camX; ortho.top=halfH+camY; ortho.bottom=-halfH+camY;
+    ortho.updateProjectionMatrix();
+    ortho.position.set(camX,camY,10); ortho.lookAt(camX,camY,0);
+    sizeSky();
+  }
+  function updatePersp(){
+    persp.aspect=aspect(); persp.updateProjectionMatrix();
+    persp.position.set(camX,camY,perspDist); persp.lookAt(camX,camY,0);
+  }
+
+  // ----- Player proxy -----
+  const player = new THREE.Mesh(
+    new THREE.BoxGeometry(0.8,1.1,0.8),
+    new THREE.MeshStandardMaterial({ color:0x88ff88, emissive:0x224422, emissiveIntensity:0.15 })
+  );
+  player.position.set(0,0,0);
+  mid.add(player);
+
+  // ----- Dead-zone (fraction of view) -----
+  let DZ_W=0.40, DZ_H=0.30;
+  function updateDeadZoneOverlay(){
+    dzEl.style.width  = Math.round(window.innerWidth  * DZ_W) + 'px';
+    dzEl.style.height = Math.round(window.innerHeight * DZ_H) + 'px';
+  }
+  updateDeadZoneOverlay();
+
+  // ----- World bounds (mid space) -----
+  const WORLD = { minX:-12, maxX:12, minY:-2, maxY:6 }; // 24×8 units
+  let clampEnabled = true;
+
+  // Visualize world bounds
+  const worldRect = new THREE.LineSegments((()=>{
+    const g=new THREE.BufferGeometry();
+    const w=WORLD.maxX-WORLD.minX, h=WORLD.maxY-WORLD.minY;
+    const x=WORLD.minX, y=WORLD.minY;
+    const p=new Float32Array([
+      x, y, 0,  x+w, y, 0,
+      x+w, y, 0, x+w, y+h, 0,
+      x+w, y+h,0, x, y+h, 0,
+      x, y+h, 0, x, y, 0
+    ]);
+    g.setAttribute('position', new THREE.BufferAttribute(p,3));
+    return g;
+  })(), new THREE.LineBasicMaterial({ color:0x00ff99 }));
+  worldRect.position.z = 0.01;
+  worldRect.visible = false;
+  mid.add(worldRect);
+  function rebuildWorldRect(){
+    const p = worldRect.geometry.attributes.position.array;
+    const w=WORLD.maxX-WORLD.minX, h=WORLD.maxY-WORLD.minY;
+    const x=WORLD.minX, y=WORLD.minY;
+    p[ 0]=x;   p[ 1]=y;     p[ 3]=x+w; p[ 4]=y;
+    p[ 6]=x+w; p[ 7]=y;     p[ 9]=x+w; p[10]=y+h;
+    p[12]=x+w; p[13]=y+h;   p[15]=x;   p[16]=y+h;
+    p[18]=x;   p[19]=y+h;   p[21]=x;   p[22]=y;
+    worldRect.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // ----- SINGLE Parallax function (base layers, tiles, bars) -----
+  function applyParallax(){
+    const groups=[bg,mid,fg,barsBG,barsMID,barsFG,bgTiles.group,fgTiles.group];
+    for(const g of groups){
+      const f=(g===bg||g===barsBG||g===bgTiles.group)?bg.userData.parallax:
+               (g===mid||g===barsMID)?mid.userData.parallax:
+               (g===fg||g===barsFG||g===fgTiles.group)?fg.userData.parallax:
+               g.userData?.parallax ?? 1.0;
+      g.position.x = camX*(1-f);
+      g.position.y = camY*(1-f);
+    }
+  }
+  function updateTiles(){ updateTiling(bgTiles,bg.userData.parallax); updateTiling(fgTiles,fg.userData.parallax); }
+
+  // ----- Input -----
+  const input={left:false,right:false,up:false,down:false};
+  addEventListener('keydown', e=>{
+    const k=e.key;
+    if(k==='ArrowLeft'||k.toLowerCase()==='a')  input.left=true;
+    if(k==='ArrowRight'||k.toLowerCase()==='d') input.right=true;
+    if(k==='ArrowUp'||k.toLowerCase()==='w')    input.up=true;
+    if(k==='ArrowDown'||k.toLowerCase()==='s')  input.down=true;
+
+    if(k.toLowerCase()==='k') setPPU(PIXELS_PER_UNIT-4);
+    if(k.toLowerCase()==='l') setPPU(PIXELS_PER_UNIT+4);
+    if(k.toLowerCase()==='p') usingOrtho=!usingOrtho;
+
+    if(k==='1'){ setParallax(0.40,1.00,1.20); }
+    if(k==='2'){ setParallax(0.25,1.00,1.50); }
+    if(k==='3'){ setParallax(0.10,1.00,1.60); }
+    if(k==='4'){ setParallax(0.05,1.00,1.80); }
+
+    if(k.toLowerCase()==='h') debug.visible=!debug.visible;
+    if(k.toLowerCase()==='t') showTileBounds=!showTileBounds;
+    if(k===' ') { autoRun=!autoRun; runPhase=0; }
+
+    if(k==='['){ DZ_W=Math.max(0.1,DZ_W-0.02); updateDeadZoneOverlay(); }
+    if(k===']'){ DZ_W=Math.min(0.9,DZ_W+0.02); updateDeadZoneOverlay(); }
+    if(k===';'){ DZ_H=Math.max(0.1,DZ_H-0.02); updateDeadZoneOverlay(); }
+    if(k==="'"){ DZ_H=Math.min(0.9,DZ_H+0.02); updateDeadZoneOverlay(); }
+
+    if(k.toLowerCase()==='m') clampEnabled=!clampEnabled;
+    if(k.toLowerCase()==='b') worldRect.visible=!worldRect.visible;
+
+    if(k==='-'){ const cx=(WORLD.minX+WORLD.maxX)/2; WORLD.minX=cx- Math.max(4,(WORLD.maxX-WORLD.minX)*0.48); WORLD.maxX=cx+ Math.max(4,(WORLD.maxX-WORLD.minX)*0.48); rebuildWorldRect(); }
+    if(k==='='){ const cx=(WORLD.minX+WORLD.maxX)/2; WORLD.minX=cx- (WORLD.maxX-WORLD.minX)*0.54; WORLD.maxX=cx+ (WORLD.maxX-WORLD.minX)*0.54; rebuildWorldRect(); }
+    if(k===','){ const cy=(WORLD.minY+WORLD.maxY)/2; WORLD.minY=cy- Math.max(3,(WORLD.maxY-WORLD.minY)*0.48); WORLD.maxY=cy+ Math.max(3,(WORLD.maxY-WORLD.minY)*0.48); rebuildWorldRect(); }
+    if(k==='.') { const cy=(WORLD.minY+WORLD.maxY)/2; WORLD.minY=cy- (WORLD.maxY-WORLD.minY)*0.54; WORLD.maxY=cy+ (WORLD.maxY-WORLD.minY)*0.54; rebuildWorldRect(); }
+
+    if(k.toLowerCase()==='v'){ toggleStyle(); }
+    if(k.toLowerCase()==='o'){ maskEnabled=!maskEnabled; updateOverlays(); }
+    if(k.toLowerCase()==='r'){ resetPositions(); }
+  });
+  addEventListener('keyup', e=>{
+    const k=e.key;
+    if(k==='ArrowLeft'||k.toLowerCase()==='a')  input.left=false;
+    if(k==='ArrowRight'||k.toLowerCase()==='d') input.right=false;
+    if(k==='ArrowUp'||k.toLowerCase()==='w')    input.up=false;
+    if(k==='ArrowDown'||k.toLowerCase()==='s')  input.down=false;
+  });
+
+  addEventListener('wheel', e=>{ const step=(PIXELS_PER_UNIT>=64)?4:2; setPPU(PIXELS_PER_UNIT - Math.sign(e.deltaY)*step); }, {passive:true});
+  function setPPU(ppu){ PIXELS_PER_UNIT = THREE.MathUtils.clamp(ppu, MIN_PPU, MAX_PPU); }
+
+  // ----- Player motion (test) -----
+  const MOVE=4.0; function updatePlayer(dt){
+    let vx=(input.right?1:0)-(input.left?1:0);
+    let vy=(input.up?1:0)-(input.down?1:0);
+    player.position.x += vx*MOVE*dt;
+    player.position.y += vy*MOVE*dt;
+  }
+
+  // ----- Clamp helper -----
+  function clampToWorld(cx, cy){
+    const [halfW, halfH] = visibleUnits();
+    const minX = WORLD.minX + halfW, maxX = WORLD.maxX - halfW;
+    const minY = WORLD.minY + halfH, maxY = WORLD.maxY - halfH;
+
+    const worldW = WORLD.maxX - WORLD.minX, viewW = halfW*2;
+    const worldH = WORLD.maxY - WORLD.minY, viewH = halfH*2;
+
+    let x=cx, y=cy;
+    x = (viewW >= worldW) ? (WORLD.minX+WORLD.maxX)/2 : THREE.MathUtils.clamp(cx, minX, maxX);
+    y = (viewH >= worldH) ? (WORLD.minY+WORLD.maxY)/2 : THREE.MathUtils.clamp(cy, minY, maxY);
+    return [x,y];
+  }
+
+  // ----- Follow with dead-zone + clamp (critically damped) -----
+  const STIFF=60, DAMP=2*Math.sqrt(STIFF);
+  function followCamera(dt){
+    const [halfW,halfH]=visibleUnits();
+    const dzHalfW = halfW*DZ_W, dzHalfH = halfH*DZ_H;
+
+    let shiftX=0, shiftY=0;
+    if(player.position.x < camX - dzHalfW) shiftX = player.position.x - (camX - dzHalfW);
+    if(player.position.x > camX + dzHalfW) shiftX = player.position.x - (camX + dzHalfW);
+    if(player.position.y < camY - dzHalfH) shiftY = player.position.y - (camY - dzHalfH);
+    if(player.position.y > camY + dzHalfH) shiftY = player.position.y - (camY + dzHalfH);
+
+    let targetX = camX + shiftX;
+    let targetY = camY + shiftY;
+
+    if(clampEnabled) [targetX, targetY] = clampToWorld(targetX, targetY);
+
+    if(stylePixel){
+      const snap=(v)=>Math.round(v*PIXELS_PER_UNIT)/PIXELS_PER_UNIT;
+      targetX = snap(targetX); targetY = snap(targetY);
+    }
+
+    const ax = STIFF*(targetX - camX) - DAMP*camVX;
+    const ay = STIFF*(targetY - camY) - DAMP*camVY;
+    camVX += ax*dt; camVY += ay*dt;
+    camX  += camVX*dt; camY  += camVY*dt;
+
+    if(stylePixel){
+      const snap=(v)=>Math.round(v*PIXELS_PER_UNIT)/PIXELS_PER_UNIT;
+      camX = snap(camX); camY = snap(camY);
+      player.position.x = snap(player.position.x);
+      player.position.y = snap(player.position.y);
+    }
+
+    const wW=(WORLD.maxX-WORLD.minX).toFixed(1), wH=(WORLD.maxY-WORLD.minY).toFixed(1);
+    modeEl.textContent = `L10 · Step 7 — ${stylePixel?'Pixel-Art':'Filmic'} · ${PIXELS_PER_UNIT} px/u · DZ ${(DZ_W*100)|0}%×${(DZ_H*100)|0}% · clamp ${clampEnabled?'ON':'OFF'} · world ${wW}×${wH}u`;
+  }
+
+  // ----- Auto-run (demo) -----
+  let autoRun=false, runPhase=0;
+  function updateAutoRun(dt){ if(!autoRun) return; runPhase+=dt*0.8*Math.PI*2; player.position.x=Math.sin(runPhase)*8.0; }
+
+  // ----- Presets (visual + parallax) & overlays -----
+  function setParallax(bgF, midF, fgF){ bg.userData.parallax=bgF; mid.userData.parallax=midF; fg.userData.parallax=fgF; }
+  let maskEnabled=false;
+  function updateOverlays(){
+    const safeW = Math.round(window.innerWidth*0.90), safeH = Math.round(window.innerHeight*0.85);
+    safeEl.style.width  = safeW+'px';
+    safeEl.style.height = safeH+'px';
+    dzEl.style.width  = Math.round(window.innerWidth  * DZ_W) + 'px';
+    dzEl.style.height = Math.round(window.innerHeight * DZ_H) + 'px';
+    if(maskEnabled){
+      maskEl.style.display='block';
+      maskEl.style.width = safeW+'px';
+      maskEl.style.height= safeH+'px';
+    }else{
+      maskEl.style.display='none';
+    }
+  }
+  function toggleStyle(){
+    stylePixel = !stylePixel; setPixelRatioForStyle();
+    if(stylePixel && PIXELS_PER_UNIT < 48) PIXELS_PER_UNIT = 48;
+    if(!stylePixel && PIXELS_PER_UNIT > 96) PIXELS_PER_UNIT = 64;
+  }
+  function resetPositions(){ camX=0; camY=0; camVX=0; camVY=0; player.position.set(0,0,0); }
+
+  // ----- Rig update -----
+  function updateRig(){
+    if(usingOrtho){ camera=ortho; updateOrtho(); } else { camera=persp; updatePersp(); }
+    applyParallax();
+    updateTiles();
+    updateOverlays();
+  }
+
+  // ----- Resize -----
+  addEventListener('resize', ()=>{ setRendererSize(); updateOverlays(); });
+
+  // ----- Loop -----
+  let last=performance.now();
+  function loop(now){
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    updatePlayer(dt);
+    updateAutoRun(dt);
+    followCamera(dt);
+    updateRig();
+    renderer.render(scene,camera);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+}catch(e){ showErr(e); }
+})();
+</script>
+</body>
+</html>

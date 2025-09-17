@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Lesson 10 · Step 4/7 — Tiling Background (FIX)</title>
+<title>Lesson 10 · Step 4/7 — Tiling Background (FIX2)</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#0e0e12}
   #app{width:100%;height:100%}
@@ -57,20 +57,18 @@ try{
   const mid = new THREE.Group();  mid.userData.parallax = 1.00;
   const fg  = new THREE.Group();  fg.userData.parallax  = 1.50;
   // Z stack
-  bg.position.z  = -10;
-  mid.position.z =   0;
-  fg.position.z  =  10;
+  bg.position.z  = -10; mid.position.z = 0; fg.position.z = 10;
   scene.add(bg, mid, fg);
 
-  // ----- Background sky (FIX: no depth, draws behind everything) -----
+  // ----- Background sky (no depth; always “behind”) -----
   const skyMat = new THREE.ShaderMaterial({
     uniforms:{ top:{value:new THREE.Color(0x1a2030)}, bottom:{value:new THREE.Color(0x0c0f18)} },
     vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader:`uniform vec3 top; uniform vec3 bottom; varying vec2 vUv;
       void main(){ vec3 c = mix(bottom, top, clamp(vUv.y,0.0,1.0)); gl_FragColor=vec4(c,1.0); }`
   });
-  skyMat.depthWrite = false;   // <<< important
-  skyMat.depthTest  = false;   // <<< important
+  skyMat.depthWrite = false;
+  skyMat.depthTest  = false;
   const sky = new THREE.Mesh(new THREE.PlaneGeometry(1,1), skyMat);
   sky.renderOrder = -100;
   bg.add(sky);
@@ -145,18 +143,6 @@ try{
     persp.position.set(camX, camY, perspDist); persp.lookAt(camX, camY, 0);
   }
 
-  // ----- Parallax application -----
-  function applyParallax(){
-    [bg, mid, fg, barsBG, barsMID, barsFG].forEach(g=>{
-      const f = (g===barsBG)?bg.userData.parallax :
-                (g===barsMID)?mid.userData.parallax :
-                (g===barsFG)?fg.userData.parallax :
-                g.userData.parallax;
-      g.position.x = camX * (1 - f);
-      g.position.y = camY * (1 - f);
-    });
-  }
-
   // ----- Tiling helpers (with zebra + bounds) -----
   let showTileBounds = false;
   const boundsMat = new THREE.LineBasicMaterial({ color: 0x66ccff });
@@ -181,7 +167,7 @@ try{
     for(let i=0;i<opts.count;i++){
       const tile = opts.buildTile(i);
       tile.position.y = opts.y || 0;
-      // Zebra tint (clone materials so not shared)
+      // Zebra tint
       if(opts.zebra && (i%2===1)){
         tile.traverse(o=>{
           if(o.isMesh && o.material){
@@ -202,8 +188,7 @@ try{
   }
 
   function updateTiling(tiling, parallax){
-    const [halfW] = visibleUnits(); // half screen width in world units (screen space)
-    // Compute the LAYER-LOCAL range that covers the current screen
+    const [halfW] = visibleUnits(); // half screen width in world units
     const xLmin = -halfW + parallax * camX;
     const firstIndex = Math.floor(xLmin / tiling.tileW) - 1;
     for(let i=0;i<tiling.count;i++){
@@ -216,7 +201,7 @@ try{
     }
   }
 
-  // BG tile content — silhouettes
+  // Create tilings (vars declared here so applyParallax can safely reference them later)
   const bgMat = new THREE.MeshStandardMaterial({ color:0x161b28, roughness:1 });
   function buildBgTile(){
     const g = new THREE.Group();
@@ -230,7 +215,6 @@ try{
     return g;
   }
 
-  // FG tile content — trims
   const fgTileMat = new THREE.MeshStandardMaterial({ color:0x2e3550, roughness:0.8 });
   function buildFgTile(){
     const g = new THREE.Group();
@@ -240,10 +224,27 @@ try{
     return g;
   }
 
-  // Create tilings
-  // NOTE: zLocal puts tiles slightly IN FRONT of sky within BG layer
-  const bgTiles = makeTiling(bg, { tileW:6, tileH:1.6, y:-0.25, zLocal: +0.1, count:24, buildTile:buildBgTile, zebra:true });
-  const fgTiles = makeTiling(fg, { tileW:5, tileH:0.8, y:-0.60, zLocal:  0.0, count:24, buildTile:buildFgTile, zebra:true });
+  const bgTiles = makeTiling(bg, { tileW:6, tileH:1.6, y:-0.25, zLocal:+0.1, count:24, buildTile:buildBgTile, zebra:true });
+  const fgTiles = makeTiling(fg, { tileW:5, tileH:0.8, y:-0.60, zLocal: 0.0, count:24, buildTile:buildFgTile, zebra:true });
+
+  // ----- SINGLE parallax function (fix) -----
+  function applyParallax(){
+    // base layers + debug bars
+    const groups = [bg, mid, fg, barsBG, barsMID, barsFG];
+    // include tile groups if they exist
+    if(bgTiles?.group) groups.push(bgTiles.group);
+    if(fgTiles?.group) groups.push(fgTiles.group);
+
+    for(const g of groups){
+      const f =
+        (g===barsBG || g===bgTiles?.group) ? bg.userData.parallax :
+        (g===barsMID)                       ? mid.userData.parallax :
+        (g===barsFG || g===fgTiles?.group) ? fg.userData.parallax :
+        g.userData?.parallax ?? 1.0;
+      g.position.x = camX * (1 - f);
+      g.position.y = camY * (1 - f);
+    }
+  }
 
   function updateTiles(){
     updateTiling(bgTiles, bg.userData.parallax);
@@ -251,18 +252,6 @@ try{
   }
 
   // ----- Rig update -----
-  function applyParallax(){
-    [bg, mid, fg, barsBG, barsMID, barsFG, bgTiles.group, fgTiles.group].forEach(g=>{
-      const f =
-        (g===barsBG||g===bgTiles.group) ? bg.userData.parallax :
-        (g===barsMID)                    ? mid.userData.parallax :
-        (g===barsFG||g===fgTiles.group) ? fg.userData.parallax :
-        g.userData?.parallax ?? 1.0;
-      g.position.x = camX * (1 - f);
-      g.position.y = camY * (1 - f);
-    });
-  }
-
   function updateRig(){
     if(usingOrtho){ camera=ortho; updateOrtho(); } else { camera=persp; updatePersp(); }
     applyParallax();

@@ -23,7 +23,7 @@
   </div>
   <canvas id="c"></canvas>
 <div class="overlay">Lesson 04 · Step 7/7 — Final Centered 2D↔3D Pairs</div>
-  <div id="hint">Step 07: Final — switch Ortho↔Perspective, toggle pairs, rotate 3D, centered framing</div>
+  <div id="hint">Step 07: Final — switch Ortho↔Perspective, toggle pairs, enjoy the swirling 3D motion</div>
 
   <script type="module">
   // SPDX-License-Identifier: LicenseRef-UT-PEL-1.0
@@ -111,6 +111,8 @@
   const pyramid = addPyramid( 240,0,200,220);
   cube.position.z = -120;
   pyramid.position.z = 60;
+  const cubeBasePos = cube.position.clone();
+  const pyramidBasePos = pyramid.position.clone();
   group3D.add(cube, pyramid);
 
   // --- UI elements ---
@@ -161,13 +163,37 @@
   // initial visibility
   syncVisibility();
 
-  // loop (rotate only when 3D is active)
+  const clock = new THREE.Clock();
+  let motionTime = 0;
+
+  // loop (full 3D motion can be toggled)
   function tick(){
     resize();
-    if (rotate3D && cam.isPerspectiveCamera){
-      cube.rotation.x += 0.012;
-      cube.rotation.y += 0.018;
-      pyramid.rotation.y += 0.022;
+    const delta = clock.getDelta();
+    if (rotate3D){
+      motionTime += delta;
+
+      cube.position.set(
+        cubeBasePos.x + Math.sin(motionTime * 0.8) * 90,
+        cubeBasePos.y + Math.cos(motionTime * 0.55) * 70,
+        cubeBasePos.z + Math.sin(motionTime * 0.95 + Math.PI / 3) * 80
+      );
+      cube.rotation.set(
+        motionTime * 0.7,
+        motionTime * 0.9,
+        Math.sin(motionTime * 0.6) * 0.8
+      );
+
+      pyramid.position.set(
+        pyramidBasePos.x + Math.cos(motionTime * 0.72 + Math.PI / 4) * 85,
+        pyramidBasePos.y + Math.sin(motionTime * 0.6) * 60,
+        pyramidBasePos.z + Math.cos(motionTime * 1.05) * 90
+      );
+      pyramid.rotation.set(
+        Math.sin(motionTime * 0.7) * 0.9,
+        motionTime * 0.85,
+        Math.cos(motionTime * 0.5 + Math.PI / 6) * 0.6
+      );
     }
     renderer.render(scene, cam);
     requestAnimationFrame(tick);
