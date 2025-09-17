@@ -23,7 +23,7 @@
   </div>
   <canvas id="c"></canvas>
 <div class="overlay">Lesson 04 · Step 6/7 — Rotating 3D with Pairs</div>
-  <div id="hint">Step 06: Rotation runs only in Perspective; Ortho shows static 2D</div>
+  <div id="hint">Step 06: 3D keeps rotating even while Ortho shows the static 2D pair</div>
 
   <script type="module">
   import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
@@ -124,7 +124,7 @@
 
   function tick(){
     resize();
-    if (rotate3D && cam.isPerspectiveCamera){
+    if (rotate3D){
       cube.rotation.x += 0.013; cube.rotation.y += 0.017;
       pyramid.rotation.y += 0.02;
     }
