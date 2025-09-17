@@ -103,3 +103,11 @@ We’ll explore different types of lights, shadows, and how to use them effectiv
 ---
 
 👨‍💻 Happy coding, and keep experimenting!
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

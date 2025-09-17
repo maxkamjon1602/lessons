@@ -82,11 +82,13 @@ const { EffectComposer } = await import('https://unpkg.com/three@0.158.0/example
 - **No difference in order**: set **DPR=1** and enable the **neon** helper to create high‑contrast edges.
 - **Values keep increasing**: use the **fixed Step 7** where presets are on **1/2/3/0** and grade uses **U/I/O** (with clamps + reset).
 
----
-
 Made with ❤️ for your Lesson 08 → 09 pipeline upgrade.  
 Happy rendering!
 
 ---
 
-UZ · <strong>Learn · Try · @maxkamjon.abdumannobov</strong>
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

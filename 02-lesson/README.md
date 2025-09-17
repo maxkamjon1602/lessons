@@ -24,3 +24,11 @@ This lesson builds on Lesson 1 and introduces **THREE.Group** for hierarchical t
 
 ## Run
 All html files can be run with normal browsers.
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

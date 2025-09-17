@@ -90,5 +90,12 @@ lesson-07/
 Next: **Lesson 08 — Cameras & Projection**  
 We’ll dive deeper into camera types, FOV, aspect ratio, and projection tricks.
 
----
 👨‍💻 Happy coding and keep experimenting!
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

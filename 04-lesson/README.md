@@ -88,3 +88,11 @@ Rotation only runs for **3D** in **Perspective** to highlight depth perception. 
 
 ## License
 All materials in this repository can only be used for personal educational purposes. Any other activity is strictly prohibited.
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

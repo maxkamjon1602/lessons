@@ -109,3 +109,9 @@ All files are supported on most modern browsers.
 - **Jitter on movement** → Clamp `dt` (e.g., to `0.05`) to ignore long frame pauses.
 
 ---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

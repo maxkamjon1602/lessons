@@ -201,3 +201,10 @@ Please respect author's hardwork.
   🌟 Built with ❤️ and Three.js · UZ · <strong>Learn · Try · @maxkamjon.abdumannobov</strong>
 </p>
 Copyright (c) 2025 UZ Learn Try. All rights reserved.
+
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

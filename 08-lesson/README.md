@@ -74,3 +74,11 @@ By the end of Lesson 08, learners can:
 - `07-Cinematic-Camera-Path.html`
 
 Happy coding! ✨
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

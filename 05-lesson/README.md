@@ -95,3 +95,11 @@ Get it from: https://unpkg.com/three@0.158.0/build/three.module.js
 - [ ] Minimal orbit controller
 - [ ] Crisp HiDPI rendering (DPR-aware)
 - [ ] Small HUD + runtime toggles
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.

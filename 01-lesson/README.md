@@ -107,3 +107,10 @@ lesson-01-increments/
 - Create a slider that controls the rotation speed for the Z/Y spin buttons.
 - Introduce a keyboard shortcut to reset all rotations to zero.
 
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.  
+The name and materials are provided strictly for personal educational purposes.  
+All rights reserved.
