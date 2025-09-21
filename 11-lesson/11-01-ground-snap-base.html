@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lesson 11 · Step 1 — Ground Snapping & Slopes (FIX visuals)</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#131722}
+  #app{width:100%;height:100%}
+  .hud{position:fixed;top:8px;left:8px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.55);color:#fff;font:13px/1.35 monospace}
+  .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;font:12px/1.35 monospace}
+  #dz{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;border:2px solid rgba(255,255,255,.85)}
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.158.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="hud" class="hud">L11 · Step 1 — Ground Snap: grounded=false · vy=0.00 · slope=—</div>
+<div id="dz"></div>
+<div class="help">
+  Move: <b>A/D</b> · Ray/Normal: <b>G</b> · Ground wireframe: <b>H</b> · Reset: <b>R</b><br/>
+  Parallax: <b>1/2/3/4</b> · Clamp: <b>M</b> · Bounds: <b>B</b> · Ortho/Persp: <b>P</b> · PPU: <b>K</b>/<b>L</b>
+</div>
+
+<script type="module">
+const THREE = await import('three');
+
+const app = document.getElementById('app');
+const hud = document.getElementById('hud');
+const dzEl = document.getElementById('dz');
+
+// ---------- Renderer ----------
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+app.appendChild(renderer.domElement);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x131722);
+if ('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+else if ('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+// ---------- Scene & Layers ----------
+const scene = new THREE.Scene();
+const bg  = new THREE.Group();  bg.userData.parallax  = 0.25;
+const mid = new THREE.Group();  mid.userData.parallax = 1.00;
+const fg  = new THREE.Group();  fg.userData.parallax  = 1.50;
+bg.position.z=-10; mid.position.z=0; fg.position.z=10;
+scene.add(bg, mid, fg);
+
+// Sky gradient (brighter)
+const skyMat = new THREE.ShaderMaterial({
+  uniforms:{ top:{value:new THREE.Color(0x334a7a)}, bottom:{value:new THREE.Color(0x1a2336)} },
+  vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`uniform vec3 top; uniform vec3 bottom; varying vec2 vUv;
+    void main(){ vec3 c = mix(bottom, top, clamp(vUv.y,0.0,1.0)); gl_FragColor=vec4(c,1.0); }`
+});
+skyMat.depthWrite=false; skyMat.depthTest=false;
+const sky = new THREE.Mesh(new THREE.PlaneGeometry(1,1), skyMat);
+sky.renderOrder = -100; bg.add(sky);
+
+// ---------- World Geometry (brighter + thin, slightly behind player) ----------
+const LEVEL_Z = -0.05;            // place ground a hair behind player
+const GROUND_Z_THICK = 0.30;      // thin in Z so it doesn't look like a big slab
+const groundMat = new THREE.MeshStandardMaterial({ color:0x2e3758, roughness:0.9 });
+const rampMat   = new THREE.MeshStandardMaterial({ color:0x3a5b8f, roughness:0.85 });
+
+let groundWireframe = false;
+function setWireframe(on){
+  groundMat.wireframe = on;
+  rampMat.wireframe   = on;
+}
+const level = new THREE.Group(); level.position.z = LEVEL_Z; mid.add(level);
+
+// Flat ground segments
+function flat(w, y= -1, x=0){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,0.5,GROUND_Z_THICK), groundMat);
+  m.position.set(x,y-0.25,0); m.receiveShadow=true; return m;
+}
+// Ramp helper (rotated thin box)
+function ramp(w, h, x=0, y=-1, up=true){
+  const thick = GROUND_Z_THICK;
+  const box = new THREE.Mesh(new THREE.BoxGeometry(w, Math.hypot(w,h), thick), rampMat);
+  box.position.set(x, y + h*0.5, 0); // center so top runs from y to y+h
+  box.rotation.z = Math.atan2(h, w) * (up?1:-1);
+  return box;
+}
+
+// Course (moved the first ramp a bit farther to the right to avoid covering the start)
+level.add(flat(12,-1, -12));
+level.add(ramp(8,3, -1,-1, true));
+level.add(flat(10, 0.5, 8));
+level.add(ramp(6,-2, 14,0.5, false));
+level.add(flat(12,-1, 23));
+
+// ---------- Lights (brighter, easier to read) ----------
+scene.add(new THREE.HemisphereLight(0x9fb8ff, 0x1b2030, 0.65));
+scene.add(new THREE.AmbientLight(0xffffff,0.25));
+const dir = new THREE.DirectionalLight(0xffffff,1.25); dir.position.set(6,10,6); scene.add(dir);
+
+// ---------- Camera (Ortho + dead-zone follow + clamp) ----------
+let PIXELS_PER_UNIT=64; const MIN_PPU=16, MAX_PPU=256;
+const aspect = ()=> window.innerWidth / window.innerHeight;
+
+const ortho = new THREE.OrthographicCamera(-1,1,1,-1,0.1,1000);
+ortho.position.set(0,0,10); ortho.lookAt(0,0,0);
+
+const persp = new THREE.PerspectiveCamera(50, aspect(), 0.1, 1000);
+let perspDist=10; persp.position.set(0,0,perspDist); persp.lookAt(0,0,0);
+
+let usingOrtho = true; let camera = ortho;
+
+let camX=0, camY=0, camVX=0, camVY=0;
+let DZ_W=0.40, DZ_H=0.30;
+function updateDZ(){ dzEl.style.width=Math.round(window.innerWidth*DZ_W)+'px'; dzEl.style.height=Math.round(window.innerHeight*DZ_H)+'px'; }
+updateDZ();
+
+const WORLD = { minX:-14, maxX:26, minY:-4, maxY:8 };
+let clampEnabled = true;
+
+function visibleUnitsOrtho(){ const halfH=(window.innerHeight/PIXELS_PER_UNIT)*0.5; return [halfH*aspect(), halfH]; }
+function visibleUnitsPersp(){ const halfH=Math.tan((Math.PI/180)*(persp.fov*0.5))*perspDist; return [halfH*aspect(), halfH]; }
+function visibleUnits(){ return usingOrtho?visibleUnitsOrtho():visibleUnitsPersp(); }
+function sizeSky(){ const [halfW,halfH]=visibleUnits(); sky.scale.set(halfW*4,halfH*2,1); }
+
+function updateOrtho(){
+  const [halfW,halfH]=visibleUnitsOrtho();
+  ortho.left=-halfW+camX; ortho.right=halfW+camX; ortho.top=halfH+camY; ortho.bottom=-halfH+camY;
+  ortho.updateProjectionMatrix();
+  ortho.position.set(camX,camY,10); ortho.lookAt(camX,camY,0);
+  sizeSky();
+}
+function updatePersp(){
+  persp.aspect=aspect(); persp.updateProjectionMatrix();
+  persp.position.set(camX,camY,perspDist); persp.lookAt(camX,camY,0);
+  sizeSky();
+}
+function clampToWorld(cx, cy){
+  const [halfW, halfH] = visibleUnits();
+  const minX = WORLD.minX + halfW, maxX = WORLD.maxX - halfW;
+  const minY = WORLD.minY + halfH, maxY = WORLD.maxY - halfH;
+  const worldW=WORLD.maxX-WORLD.minX, worldH=WORLD.maxY-WORLD.minY;
+  const viewW=halfW*2, viewH=halfH*2;
+  return [
+    (viewW>=worldW)?(WORLD.minX+WORLD.maxX)/2:THREE.MathUtils.clamp(cx,minX,maxX),
+    (viewH>=worldH)?(WORLD.minY+WORLD.maxY)/2:THREE.MathUtils.clamp(cy,minY,maxY)
+  ];
+}
+const STIFF=60, DAMP=2*Math.sqrt(STIFF);
+function followCamera(dt){
+  const [halfW,halfH]=visibleUnits();
+  const dzW=halfW*DZ_W, dzH=halfH*DZ_H;
+  let shiftX=0, shiftY=0;
+  if(player.position.x < camX - dzW) shiftX = player.position.x - (camX - dzW);
+  if(player.position.x > camX + dzW) shiftX = player.position.x - (camX + dzW);
+  if(player.position.y < camY - dzH) shiftY = player.position.y - (camY - dzH);
+  if(player.position.y > camY + dzH) shiftY = player.position.y - (camY + dzH);
+  let targetX=camX+shiftX, targetY=camY+shiftY;
+  if(clampEnabled) [targetX,targetY]=clampToWorld(targetX,targetY);
+  const ax = STIFF*(targetX - camX) - DAMP*camVX;
+  const ay = STIFF*(targetY - camY) - DAMP*camVY;
+  camVX+=ax*dt; camVY+=ay*dt; camX+=camVX*dt; camY+=camVY*dt;
+}
+function applyParallax(){
+  const set=(g,f)=>{ g.position.x = camX*(1-f); g.position.y = camY*(1-f); };
+  set(bg, bg.userData.parallax); set(mid, mid.userData.parallax); set(fg, fg.userData.parallax);
+}
+function updateRig(){
+  if(usingOrtho){ camera=ortho; updateOrtho(); } else { camera=persp; updatePersp(); }
+  applyParallax();
+}
+
+// ---------- Player Kinematic Controller ----------
+const PLAYER_HEIGHT = 1.1, PLAYER_HALF = PLAYER_HEIGHT*0.5, PLAYER_WIDTH = 0.8;
+const MOVE_SPEED = 6.0, GRAVITY = -18.0, SNAP_DIST = 0.35, MAX_SLOPE_DEG = 38;
+
+const player = new THREE.Mesh(
+  new THREE.BoxGeometry(PLAYER_WIDTH, PLAYER_HEIGHT, 0.8),
+  new THREE.MeshStandardMaterial({ color:0x88ff88, emissive:0x224422, emissiveIntensity:0.12 })
+);
+// put player a hair in front so terrain never visually covers it
+player.position.set(-12,-0.2, +0.05);
+mid.add(player);
+
+const raycaster = new THREE.Raycaster();
+const UP = new THREE.Vector3(0,1,0);
+let showRay = true;
+const rayViz = new THREE.Group(); mid.add(rayViz);
+const rayLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0,-1,0)]),
+  new THREE.LineBasicMaterial({ color:0x66ccff })
+);
+rayViz.add(rayLine);
+const normalLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0,1,0)]),
+  new THREE.LineBasicMaterial({ color:0xffaa00 })
+);
+rayViz.add(normalLine);
+
+let grounded=false, slopeDeg=0, hitDist=Infinity;
+let vx=0, vy=0;
+
+// Colliders to test against: children of level
+const colliders = [];
+level.traverse(o=>{ if(o.isMesh){ colliders.push(o); } });
+
+// Input
+const input={left:false,right:false};
+addEventListener('keydown', e=>{
+  const k=e.key.toLowerCase();
+  if(k==='a'||k==='arrowleft') input.left=true;
+  if(k==='d'||k==='arrowright') input.right=true;
+  if(k==='g') showRay=!showRay, (rayViz.visible=showRay);
+  if(k==='h') { groundWireframe=!groundWireframe; setWireframe(groundWireframe); }
+  if(k==='r'){ player.position.set(-12,-0.2,+0.05); vx=vy=0; }
+  if(k==='p'){ usingOrtho=!usingOrtho; updateRig(); }
+  if(k==='m') clampEnabled=!clampEnabled;
+  if(k==='1'){ bg.userData.parallax=0.40; mid.userData.parallax=1.00; fg.userData.parallax=1.20; }
+  if(k==='2'){ bg.userData.parallax=0.25; mid.userData.parallax=1.00; fg.userData.parallax=1.50; }
+  if(k==='3'){ bg.userData.parallax=0.10; mid.userData.parallax=1.00; fg.userData.parallax=1.60; }
+  if(k==='4'){ bg.userData.parallax=0.05; mid.userData.parallax=1.00; fg.userData.parallax=1.80; }
+  if(k==='k') setPPU(PIXELS_PER_UNIT-4);
+  if(k==='l') setPPU(PIXELS_PER_UNIT+4);
+  if(k==='b'){ bounds.visible=!bounds.visible; }
+});
+addEventListener('keyup', e=>{
+  const k=e.key.toLowerCase();
+  if(k==='a'||k==='arrowleft') input.left=false;
+  if(k==='d'||k==='arrowright') input.right=false;
+});
+function setPPU(ppu){ PIXELS_PER_UNIT=THREE.MathUtils.clamp(ppu,MIN_PPU,MAX_PPU); }
+
+// Bounds overlay
+const bounds = new THREE.LineSegments((()=>{
+  const g=new THREE.BufferGeometry();
+  const p=new Float32Array([
+    WORLD.minX,WORLD.minY,0, WORLD.maxX,WORLD.minY,0,
+    WORLD.maxX,WORLD.minY,0, WORLD.maxX,WORLD.maxY,0,
+    WORLD.maxX,WORLD.maxY,0, WORLD.minX,WORLD.maxY,0,
+    WORLD.minX,WORLD.maxY,0, WORLD.minX,WORLD.minY,0
+  ]);
+  g.setAttribute('position', new THREE.BufferAttribute(p,3));
+  return g;
+})(), new THREE.LineBasicMaterial({ color:0x00ff99 }));
+bounds.position.z = 0.01; bounds.visible = false; mid.add(bounds);
+
+// -------- Ground snapping logic --------
+function snapToGround(){
+  grounded=false; slopeDeg=0; hitDist=Infinity;
+
+  const origin = new THREE.Vector3(player.position.x, player.position.y - PLAYER_HALF + 0.05, player.position.z);
+  const dir = new THREE.Vector3(0,-1,0);
+  raycaster.set(origin, dir);
+  raycaster.far = SNAP_DIST + 0.1;
+
+  const hits = raycaster.intersectObjects(colliders, false);
+  if(hits.length===0) return;
+
+  const hit = hits[0];
+  const n = hit.face?.normal ? hit.face.normal.clone().applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld)) : new THREE.Vector3(0,1,0);
+  n.normalize();
+  slopeDeg = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(n.dot(UP), -1, 1)));
+
+  const dy = origin.y - hit.point.y;
+  if(dy >= -0.02 && dy <= SNAP_DIST && slopeDeg <= MAX_SLOPE_DEG){
+    player.position.y = hit.point.y + PLAYER_HALF;
+    vy = 0; grounded = true;
+  }
+
+  // viz
+  rayLine.geometry.setFromPoints([origin, origin.clone().addScaledVector(dir, raycaster.far)]);
+  normalLine.geometry.setFromPoints([hit.point, hit.point.clone().addScaledVector(n, 1.0)]);
+}
+
+// ---------- Resize ----------
+addEventListener('resize', ()=>{
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  updateDZ(); updateRig();
+});
+
+// ---------- Main loop ----------
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+
+  // Horizontal input
+  const ix = (input.right?1:0) - (input.left?1:0);
+  vx = ix * MOVE_SPEED;
+
+  // Gravity
+  vy += GRAVITY * dt;
+
+  // Integrate
+  player.position.x += vx * dt;
+  player.position.y += vy * dt;
+
+  // Snap to ground
+  snapToGround();
+
+  // Follow
+  followCamera(dt);
+  updateRig();
+
+  hud.textContent = `L11 · Step 1 — Ground Snap: grounded=${grounded} · vy=${vy.toFixed(2)} · slope=${grounded ? slopeDeg.toFixed(1)+'°' : '—'}`;
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
