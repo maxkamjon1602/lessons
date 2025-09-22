@@ -25,14 +25,14 @@ Each step is a self-contained mini-project. Open `index.html` in your browser or
 
 ```
 lesson-01-increments/
-├── [01-renderer/](./01-01-renderer.html)           # Setup renderer and dark background
-├── [02-ortho-camera/](./01-02-ortho-camera.html)   # Add orthographic camera in pixel units
-├── [03-square/](./01-03-square.html)               # Draw first square
-├── [04-triangle/](./01-04-triangle.html)           # Add custom triangle
-├── [05-toggles/](./01-05-toggles.html)             # Checkboxes to show/hide shapes
-├── [06-rotate-z/](./01-06-rotate-z.html)           # Button to spin around Z axis
-└── [07-rotate-y/](./01-07-rotate-y.html)           # Button to spin in depth around Y axis
-```
+├── [01-renderer](./01-01-renderer.html)           # Setup renderer and dark background
+├── [02-ortho-camera](./01-02-ortho-camera.html)   # Add orthographic camera in pixel units
+├── [03-square](./01-03-square.html)               # Draw first square
+├── [04-triangle](./01-04-triangle.html)           # Add custom triangle
+├── [05-toggles](./01-05-toggles.html)             # Checkboxes to show/hide shapes
+├── [06-rotate-z](./01-06-rotate-z.html)           # Button to spin around Z axis
+└── [07-rotate-y](./01-07-rotate-y.html)           # Button to spin in depth around Y axis
+```yes
 
 ---
 
