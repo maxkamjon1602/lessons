@@ -284,7 +284,7 @@ addEventListener('keydown', e=>{
   if(k==='a'||k==='arrowleft')  input.left=true;
   if(k==='d'||k==='arrowright') input.right=true;
 
-  if(k==='s'||k==='arrowdown')  downHeld=true;
+  if(k==='s'||k==='arrowdown') { downHeld=true; requestDropThrough(); }
   if(k==='w'||k==='arrowup'||k===' '){
     jumpHeld=true; jumpBufferTimer=JUMP_BUFFER;
     // Drop-through: only for one-way platforms (purple), not solids/ramps.
@@ -314,7 +314,7 @@ addEventListener('keyup', e=>{
   if(k==='a'||k==='arrowleft')  input.left=false;
   if(k==='d'||k==='arrowright') input.right=false;
   if(k==='w'||k==='arrowup'||k===' ') { jumpHeld=false; }
-  if(k==='s'||k==='arrowdown')  downHeld=false;
+  if(k==='s'||k==='arrowdown')  downHeld=true;
 });
 function setPPU(ppu){ PIXELS_PER_UNIT=THREE.MathUtils.clamp(ppu,MIN_PPU,MAX_PPU); }
 
@@ -432,6 +432,18 @@ function sweepCollide(prevX, prevY, stepX, stepY){
   }
   return { dx, dy, hit:true };
 }
+
+function requestDropThrough(){
+  if (grounded && lastGround && lastGround.userData.oneWay) {
+    dropIgnoreObj = lastGround;
+    dropTimer = DROP_TIME;            // temporarily ignore this platform
+    snapLock  = Math.max(snapLock, DROP_LOCK);
+    grounded  = false;
+    vy        = Math.min(vy, -3.5);   // stronger downward nudge so we clear it
+    player.position.y -= 0.06;        // tiny offset to exit the top face
+  }
+}
+
 
 // ---------------- Resize ----------------
 addEventListener('resize', ()=>{
