@@ -249,6 +249,13 @@ const COYOTE_TIME=0.12, JUMP_BUFFER=0.12;
 const SNAP_LOCK_AFTER_JUMP=0.06;
 const SKIN=0.02, RADIUS=PLAYER_WIDTH*0.5;
 
+// --- Drop-through input gating ---
+const DOWN_BUFFER = 0.20;      // seconds: tap-Down within this window + Jump also counts
+const DROP_ARM_TIME = 0.25;    // seconds: after Jump+Down, we wait to be grounded to execute drop
+
+let downBuffer = 0;            // time left since last Down press
+let dropArmed  = 0;            // time left to perform the drop when grounded
+
 const DROP_TIME=0.25, DROP_LOCK=0.08;
 let dropIgnoreObj=null, dropTimer=0;
 
@@ -278,40 +285,59 @@ rayViz.add(rayDown, rayNormal, sweepViz);
 let showRay=true, showSweep=false;
 
 // Input
-const input={left:false,right:false};
-addEventListener('keydown', e=>{
-  const k=e.key.toLowerCase();
-  if(k==='a'||k==='arrowleft')  input.left=true;
-  if(k==='d'||k==='arrowright') input.right=true;
+// Input
+const input = { left:false, right:false };
 
-  if(k==='s'||k==='arrowdown') { downHeld=true; requestDropThrough(); }
-  if(k==='w'||k==='arrowup'||k===' '){
-    jumpHeld=true; jumpBufferTimer=JUMP_BUFFER;
-    // Drop-through: only for one-way platforms (purple), not solids/ramps.
-    if (downHeld) requestDropThrough();
+addEventListener('keydown', e=>{
+  const k = e.key.toLowerCase();
+
+  if (k==='a' || k==='arrowleft')  input.left  = true;
+  if (k==='d' || k==='arrowright') input.right = true;
+
+  if (k==='s' || k==='arrowdown') {
+    downHeld    = true;
+    downBuffer  = DOWN_BUFFER;          // remember a quick Down tap
   }
 
-  if(k==='g'){ showRay=!showRay; rayDown.visible=rayNormal.visible=showRay; }
-  if(k==='c'){ showSweep=!showSweep; sweepViz.visible=showSweep; }
-  if(k==='h'){ groundWireframe=!groundWireframe; setWireframe(groundWireframe); }
-  if(k==='r'){ player.position.set(-12,-0.2,+0.05); vx=vy=0; coyoteTimer=jumpBufferTimer=snapLock=dropTimer=0; lastGround=null; }
-  if(k==='p'){ usingOrtho=!usingOrtho; updateRig(); }
-  if(k==='m'){ clampEnabled=!clampEnabled; }            // ✅ single place toggle
-  if(k==='1'){ bg.userData.parallax=0.40; mid.userData.parallax=1.00; fg.userData.parallax=1.20; }
-  if(k==='2'){ bg.userData.parallax=0.25; mid.userData.parallax=1.00; fg.userData.parallax=1.50; }
-  if(k==='3'){ bg.userData.parallax=0.10; mid.userData.parallax=1.00; fg.userData.parallax=1.60; }
-  if(k==='4'){ bg.userData.parallax=0.05; mid.userData.parallax=1.00; fg.userData.parallax=1.80; }
-  if(k==='k') setPPU(PIXELS_PER_UNIT-4);
-  if(k==='l') setPPU(PIXELS_PER_UNIT+4);
-  if(k==='b'){ bounds.visible=!bounds.visible; }
+  if (k==='w' || k==='arrowup' || k===' ') {
+    // JUMP: buffer jump as before
+    jumpHeld        = true;
+    jumpBufferTimer = JUMP_BUFFER;
+
+    // 🔑 NEW: Arm drop (don’t execute yet). Works with hold-Down OR tap-Down.
+    if (downHeld || downBuffer > 0) dropArmed = DROP_ARM_TIME;
+  }
+
+  if (k==='g') { showRay = !showRay; rayDown.visible = rayNormal.visible = showRay; }
+  if (k==='c') { showSweep = !showSweep; sweepViz.visible = showSweep; }
+  if (k==='h') { groundWireframe = !groundWireframe; setWireframe(groundWireframe); }
+  if (k==='r') { player.position.set(-12,-0.2,+0.05); vx=vy=0; coyoteTimer=jumpBufferTimer=snapLock=dropTimer=0; lastGround=null; }
+  if (k==='p') { usingOrtho = !usingOrtho; updateRig(); }
+  if (k==='m') { clampEnabled = !clampEnabled; }
+  if (k==='1') { bg.userData.parallax=0.40; mid.userData.parallax=1.00; fg.userData.parallax=1.20; }
+  if (k==='2') { bg.userData.parallax=0.25; mid.userData.parallax=1.00; fg.userData.parallax=1.50; }
+  if (k==='3') { bg.userData.parallax=0.10; mid.userData.parallax=1.00; fg.userData.parallax=1.60; }
+  if (k==='4') { bg.userData.parallax=0.05; mid.userData.parallax=1.00; fg.userData.parallax=1.80; }
+  if (k==='k') setPPU(PIXELS_PER_UNIT-4);
+  if (k==='l') setPPU(PIXELS_PER_UNIT+4);
+  if (k==='b') { bounds.visible = !bounds.visible; }
 });
+
 addEventListener('keyup', e=>{
-  const k=e.key.toLowerCase();
-  if(k==='a'||k==='arrowleft')  input.left=false;
-  if(k==='d'||k==='arrowright') input.right=false;
-  if(k==='w'||k==='arrowup'||k===' ') { jumpHeld=false; }
-  if(k==='s'||k==='arrowdown')  downHeld=false;
+  const k = e.key.toLowerCase();
+
+  if (k==='a' || k==='arrowleft')  input.left  = false;
+  if (k==='d' || k==='arrowright') input.right = false;
+
+  if (k==='s' || k==='arrowdown')  downHeld    = false;
+
+  if (k==='w' || k==='arrowup' || k===' ') {
+    // Key released → we are no longer “holding jump”
+    jumpHeld = false;
+    // (Do NOT arm drop or set jumpBuffer here.)
+  }
 });
+
 function setPPU(ppu){ PIXELS_PER_UNIT=THREE.MathUtils.clamp(ppu,MIN_PPU,MAX_PPU); }
 
 // World bounds overlay
@@ -461,6 +487,17 @@ function loop(now){
 
   const ix = (input.right?1:0) - (input.left?1:0);
 
+  // Timers for input gating
+  if (downBuffer > 0) downBuffer -= dt;
+  if (dropArmed  > 0) dropArmed  -= dt;
+
+  // If Jump+Down was armed, execute drop the next moment we're grounded on a one-way
+  if (dropArmed > 0 && dropTimer <= 0 && grounded && lastGround && lastGround.userData.oneWay) {
+    requestDropThrough();   // performs the actual ignore + nudge
+    dropArmed = 0;          // consume the arm
+  }
+
+
   // Consume buffered jump (grounded or within coyote)
   if(jumpBufferTimer>0 && (grounded || coyoteTimer>0)){
     vy = JUMP_SPEED;
@@ -472,11 +509,6 @@ function loop(now){
 
   // extra gravity for short hops
   const extraG = (!jumpHeld && vy > 0) ? (JUMP_CUT_MULT * GRAVITY) : 0;
-  // If Down is held and we're on a one-way, ensure drop triggers even if a jitter
-  if (downHeld && dropTimer<=0 && grounded && lastGround && lastGround.userData.oneWay) {
-    requestDropThrough();
-  }
-
 
   // Intended step BEFORE applying it
   let stepX=0, stepY=0;
@@ -523,7 +555,8 @@ function loop(now){
     `L11 · Step 4 — grounded=${grounded} · vy=${vy.toFixed(2)} · slope=${grounded ? slopeDeg.toFixed(1)+'°' : '—'} · ` +
     `coyote=${Math.max(0,coyoteTimer).toFixed(2)} · buffer=${Math.max(0,jumpBufferTimer).toFixed(2)} · ` +
     `drop=${Math.max(0,dropTimer).toFixed(2)} · clamp=${clampEnabled?'on':'off'} · ` +
-    `down=${downHeld} · onOneWay=${!!(lastGround && lastGround.userData.oneWay)}`;
+    `down=${downHeld} · onOneWay=${!!(lastGround && lastGround.userData.oneWay)} 
+    · down=${downHeld} · dbuf=${downBuffer.toFixed(2)} · armed=${dropArmed.toFixed(2)}`;
 
 
   renderer.render(scene, camera);
