@@ -30,14 +30,6 @@ Welcome! This lesson walks through a progressive Three.js build: you will start 
 - Animate objects with **rotation on Z and Y axes**.
 - Practice **incremental builds**: rerun and see each feature in isolation.
 
-## 🎹 Controls
-| UI element | Steps | What it does | Hotkey |
-| --- | --- | --- | --- |
-| `Square` checkbox | 5 → 7 | Toggles the square mesh via `mesh.visible`. | — (click/tap) |
-| `Triangle` checkbox | 5 → 7 | Toggles the triangle mesh via `mesh.visible`. | — (click/tap) |
-| `Rotate Z` button | 6 → 7 | Flips a `rotatingZ` flag so each frame adds `0.01` radians on Z. | — (button only) |
-| `Rotate Y` button | 7 | Flips a `rotatingY` flag to spin both shapes in depth. | — (button only) |
-
 ## 🗂 Step breakdown
 
 ### [Step 01 — Renderer](./01-01-renderer.html)

@@ -497,7 +497,6 @@ function loop(now){
     dropArmed = 0;          // consume the arm
   }
 
-
   // Consume buffered jump (grounded or within coyote)
   if(jumpBufferTimer>0 && (grounded || coyoteTimer>0)){
     vy = JUMP_SPEED;
