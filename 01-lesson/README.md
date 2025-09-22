@@ -25,14 +25,15 @@ Each step is a self-contained mini-project. Open `index.html` in your browser or
 
 <pre>
 lesson-01-increments/
-├── <a href="./01-01-renderer.html">01-renderer</a>           # Setup renderer and dark background
-├── <a href="./01-02-ortho-camera.html">02-ortho-camera</a>   # Add orthographic camera in pixel units
-├── <a href="./01-03-square.html">03-square</a>               # Draw first square
-├── <a href="./01-04-triangle.html">04-triangle</a>           # Add custom triangle
-├── <a href="./01-05-toggles.html">05-toggles</a>             # Checkboxes to show/hide shapes
-├── <a href="./01-06-rotate-z.html">06-rotate-z</a>           # Button to spin around Z axis
-└── <a href="./01-07-rotate-y.html">07-rotate-y</a>           # Button to spin in depth around Y axis
+├── <a href="./01-01-renderer.html">01-renderer</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Setup renderer and dark background
+├── <a href="./01-02-ortho-camera.html">02-ortho-camera</a>&nbsp;&nbsp;# Add orthographic camera in pixel units
+├── <a href="./01-03-square.html">03-square</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Draw first square
+├── <a href="./01-04-triangle.html">04-triangle</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Add custom triangle
+├── <a href="./01-05-toggles.html">05-toggles</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Checkboxes to show/hide shapes
+├── <a href="./01-06-rotate-z.html">06-rotate-z</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Button to spin around Z axis
+└── <a href="./01-07-rotate-y.html">07-rotate-y</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Button to spin in depth around Y axis
 </pre>
+
 
 
 ---
