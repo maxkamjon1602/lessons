@@ -37,25 +37,25 @@ lesson-05/
 
 ## 🧭 7 Steps (quick guide)
 
-### 01 — Scene and 2D shapes
+### [Step 01 — Scene and 2D shapes](./05-01-Scene-and-2D-shapes.html)
 Create a WebGLRenderer + Scene + PerspectiveCamera. Draw a **square** (PlaneGeometry) and a **triangle** (custom BufferGeometry).
 
-### 02 — Add 3D counterparts and lights
+### [Step 02 — Add 3D counterparts and lights](./05-02-Add-3D-counterparts-and-lights.html)
 Add a **cube** + **pyramid** (MeshStandardMaterial) and light them with **Ambient** + **Directional** lights. Tone mapping: **ACESFilmic**.
 
-### 03 — Group + animation
+### [Step 03 — Group + animation](./05-03-Group-and-Animation.html)
 Put all meshes in a `THREE.Group`. Rotate the group and add secondary rotations on cube/pyramid. Use `Clock.getDelta()`.
 
-### 04 — Orthographic camera + hotkeys
+### [Step 04 — Orthographic camera + hotkeys](./05-04-Orthographic-camera-and-switch.html)
 Add **OrthographicCamera** with viewport‑sized frustum. Hotkeys: **1** = Perspective, **2** = Ortho.
 
-### 05 — Orbit controls (drag + wheel)
+### [Step 05 — Orbit controls (drag + wheel)](./05-05-Orbit-controls-drag-and-zoom.html)
 Minimal orbit controller (θ/φ + radius). Drag to orbit, wheel to zoom.
 
-### 06 — DPR‑aware resize
+### [Step 06 — DPR‑aware resize](./05-06-DPR-aware-resize.html)
 Resize the canvas using **devicePixelRatio** (clamped) and update camera projection matrices.
 
-### 07 — HUD + runtime toggles (final)
+### [Step 07 — HUD + runtime toggles (final)](./05-07-HUD-and-runtime-toggles.html)
 Tiny FPS HUD. Runtime flags: toggle rotation (**R**), switch cameras (**1/2**).
 
 ## 💪 Challenges

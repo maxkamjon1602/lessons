@@ -32,6 +32,29 @@ lesson-03-increments/
 └── 07-combine-inputs/         # everything together
 ```
 
+## 🗂 Step Breakdown
+
+### [Step 01 — Renderer](./03-01-renderer.html)
+- Refresh the renderer + orthographic camera scaffolding.
+
+### [Step 02 — Shapes](./03-02-shapes.html)
+- Recreate the square and triangle foundations from earlier lessons.
+
+### [Step 03 — Keys Move Square](./03-03-keys-move-square.html)
+- Use arrow keys to move the square based on keyboard events.
+
+### [Step 04 — Keys Reset (Space)](./03-04-keys-reset-space.html)
+- Add a Space-bar reset that snaps the square back to its start.
+
+### [Step 05 — Mouse Follow Triangle](./03-05-mouse-follow-triangle.html)
+- Make the triangle follow the cursor using mouse position projected into scene space.
+
+### [Step 06 — Hover Highlight](./03-06-hover-highlight.html)
+- Detect hover over each shape and change colors for instant feedback.
+
+### [Step 07 — Combine Inputs](./03-07-combine-inputs.html)
+- Blend keyboard and mouse input so both shapes animate together.
+
 ## 💪 Challenges
 - Add WASD keys to move the triangle independently of the square.
 - Hold **Shift** to temporarily boost movement speed.

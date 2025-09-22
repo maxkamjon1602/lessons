@@ -45,28 +45,28 @@ lesson-07/
 
 ## 🔎 Step‑by‑Step Guide
 
-### **01 — Lighting Basics**
+### [Step 01 — Lighting Basics](./07-01-Lighting-basics.html)
 - Adds **AmbientLight** and **DirectionalLight** (no shadows).
 
-### **02 — Directional Shadows**
+### [Step 02 — Directional Shadows](./07-02-Directional-shadows.html)
 - Enable renderer.shadowMap.
 - Configure light.shadow.camera and bias.
 
-### **03 — Spotlight Shadows**
+### [Step 03 — Spotlight Shadows](./07-03-Spotlight-shadows.html)
 - Introduce **SpotLight** with cone angle & target.
 - Moving target shows dynamic shadows.
 
-### **04 — Point Light Shadows**
+### [Step 04 — Point Light Shadows](./07-04-Pointlight-shadows.html)
 - Omni‑directional shadows from a moving **PointLight**.
 
-### **05 — Shadow Quality & Bias**
+### [Step 05 — Shadow Quality & Bias](./07-05-Shadow-quality-and-bias.html)
 - Compare low vs. high quality shadows side by side.
 
-### **06 — ShadowMaterial + Hemisphere**
+### [Step 06 — ShadowMaterial + Hemisphere](./07-06-ShadowMaterial-and-Hemisphere.html)
 - Shadow‑catcher ground using **ShadowMaterial**.
 - Adds soft **HemisphereLight**.
 
-### **07 — Final Polished Scene**
+### [Step 07 — Final Polished Scene](./07-07-Final.html)
 - Mix **Directional + Spot + Point + Hemisphere** lights.
 - Interactive camera orbit.
 - Toggle lights with keys `1,2,3`.

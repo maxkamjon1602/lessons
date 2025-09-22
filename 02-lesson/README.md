@@ -9,13 +9,13 @@ This project is licensed under the **UZ Learn Try Personal Education License (UT
 This lesson builds on Lesson 1 and introduces **THREE.Group** for hierarchical transforms.
 
 ## Steps
-1. **Renderer + Ortho Camera** — refresher with blank scene.
-2. **Shapes Refresh** — draw square and triangle.
-3. **Create Group** — make a group and add shapes as children.
-4. **Move Group** — move the entire group with one transform.
-5. **Rotate Group** — toggle rotation for the whole group.
-6. **Group + Individual Animations** — group spins while items rotate independently.
-7. **Toggles: Group vs Items** — buttons to control group vs item rotations separately.
+1. [Step 01 — Renderer + Ortho Camera](./02-01-renderer.html) — refresher with blank scene.
+2. [Step 02 — Shapes Refresh](./02-02-shapes.html) — draw square and triangle.
+3. [Step 03 — Create Group](./02-03-group-create.html) — make a group and add shapes as children.
+4. [Step 04 — Move Group](./02-04-group-move.html) — move the entire group with one transform.
+5. [Step 05 — Rotate Group](./02-05-group-rotate.html) — toggle rotation for the whole group.
+6. [Step 06 — Group + Individual Animations](./02-06-group-and-individual.html) — group spins while items rotate independently.
+7. [Step 07 — Toggles: Group vs Items](./02-07-toggles.html) — buttons to control group vs item rotations separately.
 
 ## Challenges
 - Add a new shape (e.g., a circle) to the group and include it in the rotation logic.

@@ -25,9 +25,32 @@ lesson-04-increments-fixed/
 ├── 03-toggle-cameras         # button to switch Ortho ↔ Perspective
 ├── 04-z-depth                # place shapes at different Z values
 ├── 05-paired-toggles         # group2D/group3D + checkboxes for pairs
-├── 06-rotating-pairs         # like 05 + rotation in Perspective only
-└── 07-final                  # polished demo (camera toggle + pairs + rotation)
+ ├── 06-rotating-pairs         # like 05 + rotation in Perspective only
+ └── 07-final                  # polished demo (camera toggle + pairs + rotation)
 ```
+
+## 🗂 Step Breakdown
+
+### [Step 01 — Ortho Refresher](./04-01-ortho-refresher.html)
+- Rebuild the centered orthographic camera with helpful axes for orientation.
+
+### [Step 02 — Shapes Ortho](./04-02-shapes-ortho.html)
+- Place the 2D square and triangle at the origin to prep for depth exploration.
+
+### [Step 03 — Toggle Cameras](./04-03-toggle-cameras.html)
+- Add a button to swap between orthographic and perspective views on demand.
+
+### [Step 04 — Z Depth](./04-04-z-depth.html)
+- Push shapes along the Z axis to demonstrate true depth differences.
+
+### [Step 05 — Paired Toggles](./04-05-paired-toggles.html)
+- Organize 2D/3D shape pairs in groups and sync their visibility.
+
+### [Step 06 — Rotating Pairs](./04-06-rotating-pairs.html)
+- Keep the pair toggles and add rotation that only plays in Perspective mode.
+
+### [Step 07 — Final](./04-07-final.html)
+- Deliver the polished camera toggle demo combining depth, groups, and animation.
 
 **File policy:** Each step is a single, self‑contained `.html` file (no bundler needed). All scripts use ESM from the official Three.js CDN.
 

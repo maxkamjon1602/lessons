@@ -25,20 +25,20 @@ Each step is a self-contained mini-project. Open `index.html` in your browser or
 
 ```
 lesson-01-increments/
-├── 01-renderer/      # Setup renderer and dark background
-├── 02-ortho-camera/  # Add orthographic camera in pixel units
-├── 03-square/        # Draw first square
-├── 04-triangle/      # Add custom triangle
-├── 05-toggles/       # Checkboxes to show/hide shapes
-├── 06-rotate-z/      # Button to spin around Z axis
-└── 07-rotate-y/      # Button to spin in depth around Y axis
+├── [01-renderer/](./01-01-renderer.html)           # Setup renderer and dark background
+├── [02-ortho-camera/](./01-02-ortho-camera.html)   # Add orthographic camera in pixel units
+├── [03-square/](./01-03-square.html)               # Draw first square
+├── [04-triangle/](./01-04-triangle.html)           # Add custom triangle
+├── [05-toggles/](./01-05-toggles.html)             # Checkboxes to show/hide shapes
+├── [06-rotate-z/](./01-06-rotate-z.html)           # Button to spin around Z axis
+└── [07-rotate-y/](./01-07-rotate-y.html)           # Button to spin in depth around Y axis
 ```
 
 ---
 
 ## 🗂 Step Breakdown
 
-### Step 01 — Renderer
+### [Step 01 — Renderer](./01-01-renderer.html)
 - Create a WebGL renderer linked to `<canvas>`.
 - Match device pixel ratio for crisp rendering.
 - Clear screen with a dark background color.
@@ -48,7 +48,7 @@ lesson-01-increments/
 
 ---
 
-### Step 02 — Orthographic Camera
+### [Step 02 — Orthographic Camera](./01-02-ortho-camera.html)
 - Add a scene container.
 - Create an **OrthographicCamera** that maps `(0,0)` top-left to `(w,h)` bottom-right.
 - Rebuild camera on resize for consistent pixel mapping.
@@ -57,7 +57,7 @@ lesson-01-increments/
 
 ---
 
-### Step 03 — Square
+### [Step 03 — Square](./01-03-square.html)
 - Create a white square using `PlaneGeometry`.
 - Offset position so `(x,y)` feels like the **top-left corner**.
 - Use `DoubleSide` to avoid disappearing on rotation.
@@ -66,7 +66,7 @@ lesson-01-increments/
 
 ---
 
-### Step 04 — Triangle
+### [Step 04 — Triangle](./01-04-triangle.html)
 - Define a custom path with `Shape` → `lineTo` → `closePath`.
 - Convert with `ShapeGeometry`.
 - Place using top-left corner of bounding box.
@@ -75,7 +75,7 @@ lesson-01-increments/
 
 ---
 
-### Step 05 — Toggles
+### [Step 05 — Toggles](./01-05-toggles.html)
 - Add checkboxes in HTML.
 - Link checkbox state → `mesh.visible`.
 - Initialize with both visible.
@@ -84,7 +84,7 @@ lesson-01-increments/
 
 ---
 
-### Step 06 — Rotate Z
+### [Step 06 — Rotate Z](./01-06-rotate-z.html)
 - Add a button for **Z-axis spin**.
 - Toggle `rotatingZ` flag on click.
 - In loop: `mesh.rotation.z += 0.01`.
@@ -93,7 +93,7 @@ lesson-01-increments/
 
 ---
 
-### Step 07 — Rotate Y
+### [Step 07 — Rotate Y](./01-07-rotate-y.html)
 - Add a button for **Y-axis rotation**.
 - Toggle `rotatingY` flag on click.
 - In loop: `mesh.rotation.y += 0.01`.

@@ -288,11 +288,7 @@ addEventListener('keydown', e=>{
   if(k==='w'||k==='arrowup'||k===' '){
     jumpHeld=true; jumpBufferTimer=JUMP_BUFFER;
     // Drop-through: only for one-way platforms (purple), not solids/ramps.
-    if(downHeld && grounded && lastGround && lastGround.userData.oneWay){
-      dropIgnoreObj = lastGround; dropTimer = DROP_TIME;
-      snapLock = Math.max(snapLock, DROP_LOCK);
-      grounded = false; vy = Math.min(vy, -1.0); player.position.y -= 0.02;
-    }
+    if (downHeld) requestDropThrough();
   }
 
   if(k==='g'){ showRay=!showRay; rayDown.visible=rayNormal.visible=showRay; }
@@ -476,6 +472,11 @@ function loop(now){
 
   // extra gravity for short hops
   const extraG = (!jumpHeld && vy > 0) ? (JUMP_CUT_MULT * GRAVITY) : 0;
+  // If Down is held and we're on a one-way, ensure drop triggers even if a jitter
+  if (downHeld && dropTimer<=0 && grounded && lastGround && lastGround.userData.oneWay) {
+    requestDropThrough();
+  }
+
 
   // Intended step BEFORE applying it
   let stepX=0, stepY=0;

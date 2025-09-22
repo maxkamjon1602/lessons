@@ -30,25 +30,25 @@ This lesson turns your scene into a **side-view camera system** for a 2D game in
 
 ## Steps at a Glance (1–7)
 
-1. **Step 1 — Ortho Side‑View Base**  
+1. [Step 01 — Ortho Side‑View Base](./10-01-ortho-side-view.html)
    Set up pixel‑consistent **orthographic** camera with **PPU**, gradient sky, minimal scene, player proxy, and **dead‑zone HUD**. Basic critically‑damped follow.
 
-2. **Step 2 — Debug Bars & Parallax Presets**  
+2. [Step 02 — Debug Bars & Parallax Presets](./10-02-pixel-scale-and-safe-area.html)
    Add three columns of **debug bars** (bg/mid/fg) to visualize relative motion. Introduce **parallax presets** (keys 1–4) to compare layer factors quickly.
 
-3. **Step 3 — Repeating BG/FG Tiling**  
+3. [Step 03 — Repeating BG/FG Tiling](./10-03-parallax-layers.html)
    Build small **tile prefabs** for BG/FG and reposition them based on camera to create infinite horizontal looping; optional zebra tint and tile‑bounds toggle.
 
-4. **Step 4 — Density / PPU Control**  
+4. [Step 04 — Density / PPU Control](./10-04-tiling-background.html)
    Hotkeys **K/L** adjust **PIXELS_PER_UNIT**; recompute ortho frustum so world‑to‑pixel mapping remains stable across window sizes and zoom levels.
 
-5. **Step 5 — Dead‑Zone Polish**  
+5. [Step 05 — Dead‑Zone Polish](./10-05-follow-camera-deadzone.html)
    Make DZ size tweakable (`[ ]` width, `; '` height). Fine‑tune spring constants for smooth, responsive camera behavior.
 
-6. **Step 6 — World Bounds & Clamp**  
+6. [Step 06 — World Bounds & Clamp](./10-06-bounds-and-clamp.html)
    Add `{minX,maxX,minY,maxY}` world rectangle. **Clamp** desired camera center by half‑view margins; if **view ≥ world**, **center** instead of clamp. Fix perspective toggle by deriving view from `persp.fov` and refreshing rig immediately.
 
-7. **Step 7 — Visual Presets & Polish**  
+7. [Step 07 — Visual Presets & Polish](./10-07-presets-and-polish.html)
    **Filmic** (DPR‑aware) vs **Pixel‑Art** (DPR=1 + `image-rendering: pixelated` + **pixel‑snap** for camera/player). Optional letterbox mask; keep **single** `applyParallax()` shared by layers, tiles, and bars.
 
 ---
