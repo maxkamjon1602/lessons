@@ -24,8 +24,8 @@ Please respect author's hardwork.
 
 --- 
 
-# 🌌 The 3D Web Journey — Lessons 1–8
-> **56 steps · from first renderer to cinematic camera paths**
+# 🌌 The 3D Web Journey — Lessons 1–11
+> **77 steps · from first renderer to cinematic camera paths → kinematic controllers**
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/threejs/three.js/dev/files/icon.png" width="100"/>
@@ -42,7 +42,7 @@ Please respect author's hardwork.
 
 ---
 
-# 📚 Lessons Overview (1–8)
+# 📚 Lessons Overview (1–11)
 
 ---
 
@@ -163,6 +163,48 @@ Please respect author's hardwork.
 - [07 — Cinematic Camera Path](/08-lesson/08-07-cinematic-camera-path.html)
 
 📸 _Learner sees: cameras switching, zoom vs dolly contrast, final cinematic fly-through._
+
+---
+
+## ⭕ Lesson 9 — Post-Processing Pipeline
+**Goal:** Build an EffectComposer chain with FXAA, bloom, grade, DoF, and live presets/toggles.
+
+- [01 — Composer Setup](/09-lesson/09-01-composer-setup.html)
+- [02 — FXAA](/09-lesson/09-02-fxaa.html)
+- [03 — Bloom](/09-lesson/09-03-bloom.html)
+- [04 — Vignette & Grade](/09-lesson/09-04-vignette-and-grade.html)
+- [05 — Bokeh DoF](/09-lesson/09-05-bokeh-dof.html)
+- [06 — Chain & Order](/09-lesson/09-06-chain-and-order.html)
+- [07 — Presets & Performance](/09-lesson/09-07-presets-and-performance.html)
+
+📸 _Learner sees: raw renderer upgraded into a cinematic post stack with switchable looks._
+
+---
+
+## 🟦 Lesson 10 — Side-View Camera Rig
+**Goal:** Create a 2.5D camera with dead-zone follow, parallax layers, tiling backgrounds, and world clamps.
+
+- [01 — Ortho Side-View Base](/10-lesson/10-01-ortho-side-view.html)
+- [02 — Debug Bars & Parallax Presets](/10-lesson/10-02-pixel-scale-and-safe-area.html)
+- [03 — Repeating BG/FG Tiling](/10-lesson/10-03-parallax-layers.html)
+- [04 — Density / PPU Control](/10-lesson/10-04-tiling-background.html)
+- [05 — Dead-Zone Polish](/10-lesson/10-05-follow-camera-deadzone.html)
+- [06 — World Bounds & Clamp](/10-lesson/10-06-bounds-and-clamp.html)
+- [07 — Visual Presets & Polish](/10-lesson/10-07-presets-and-polish.html)
+
+📸 _Learner sees: smooth side-view tracking with parallax depth and game-ready bounds._
+
+---
+
+## 🟪 Lesson 11 — Platformer Kinematic Controller
+**Goal:** Implement ground-snapped motion with coyote time, swept collisions, and one-way platforms.
+
+- [01 — Ground Snapping & Slopes](/11-lesson/11-01-ground-snap-base.html)
+- [02 — Jump + Coyote + Buffer + Slope Walk](/11-lesson/11-02-jump-coyote-slope-walk.html)
+- [03 — Walls & Ceilings (Swept Collision)](/11-lesson/11-03-wall-ceiling-collision.html)
+- [04 — One-Way Platforms (Edge-Aware DZ + Fixes)](/11-lesson/11-04-one-way-platforms.html)
+
+📸 _Learner sees: a responsive platformer hero respecting slopes, walls, ceilings, and one-way ledges._
 
 ---
 
