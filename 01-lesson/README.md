@@ -8,18 +8,6 @@ This project is licensed under the **UZ Learn Try Personal Education License (UT
 
 This lesson introduces **Three.js** step by step, building from a blank canvas to interactive, animated 2D shapes.
 
----
-
-## 🎯 Objectives
-- Learn the **core workflow** of Three.js: renderer → camera → scene → mesh.  
-- Use an **orthographic camera** for pixel-based coordinates.  
-- Create simple **2D shapes**: square (PlaneGeometry) and triangle (ShapeGeometry).  
-- Connect **DOM controls** (checkboxes + buttons) to Three.js objects.  
-- Animate objects with **rotation on Z and Y axes**.  
-- Practice **incremental builds**: rerun and see each feature in isolation.
-
----
-
 ## 📂 Project Structure
 Each step is a self-contained mini-project. Open `index.html` in your browser or run a static server.
 
@@ -34,10 +22,19 @@ lesson-01-increments/
 └── <a href="./01-07-rotate-y.html">07-rotate-y</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Button to spin in depth around Y axis
 </pre>
 
+---
 
+## 🎯 Objectives
+- Learn the **core workflow** of Three.js: renderer → camera → scene → mesh.  
+- Use an **orthographic camera** for pixel-based coordinates.  
+- Create simple **2D shapes**: square (PlaneGeometry) and triangle (ShapeGeometry).  
+- Connect **DOM controls** (checkboxes + buttons) to Three.js objects.  
+- Animate objects with **rotation on Z and Y axes**.  
+- Practice **incremental builds**: rerun and see each feature in isolation.
 
 ---
 
+```mardown
 ## 🗂 Step Breakdown
 
 ### [Step 01 — Renderer](./01-01-renderer.html)
@@ -101,7 +98,7 @@ lesson-01-increments/
 - In loop: `mesh.rotation.y += 0.01`.
 
 👉 **Key idea:** Even with orthographic camera, 3D transforms like depth rotation still work.
-
+```
 ---
 
 ## 💪 Challenges
