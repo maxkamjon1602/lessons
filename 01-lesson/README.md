@@ -23,15 +23,24 @@ This lesson introduces **Three.js** step by step, building from a blank canvas t
 ## 📂 Project Structure
 Each step is a self-contained mini-project. Open `index.html` in your browser or run a static server.
 
+[01-renderer]: ./lesson-01-increments/01-01-renderer.html
+[02-ortho-camera]: ./lesson-01-increments/01-02-ortho-camera.html
+[03-square]: ./lesson-01-increments/01-03-square.html
+[04-triangle]: ./lesson-01-increments/01-04-triangle.html
+[05-toggles]: ./lesson-01-increments/01-05-toggles.html
+[06-rotate-z]: ./lesson-01-increments/01-06-rotate-z.html
+[07-rotate-y]: ./lesson-01-increments/01-07-rotate-y.html
+
 ```markdown
 lesson-01-increments/
-├── [01-renderer](./01-01-renderer.html)           # Setup renderer and dark background
-├── [02-ortho-camera](./01-02-ortho-camera.html)   # Add orthographic camera in pixel units
-├── [03-square](./01-03-square.html)               # Draw first square
-├── [04-triangle](./01-04-triangle.html)           # Add custom triangle
-├── [05-toggles](./01-05-toggles.html)             # Checkboxes to show/hide shapes
-├── [06-rotate-z](./01-06-rotate-z.html)           # Button to spin around Z axis
-└── [07-rotate-y](./01-07-rotate-y.html)           # Button to spin in depth around Y axis
+├── [01-renderer]           # Setup renderer and dark background
+├── [02-ortho-camera]       # Add orthographic camera in pixel units
+├── [03-square]             # Draw first square
+├── [04-triangle]           # Add custom triangle
+├── [05-toggles]            # Checkboxes to show/hide shapes
+├── [06-rotate-z]           # Button to spin around Z axis
+└── [07-rotate-y]           # Button to spin in depth around Y axis
+
 ```
 
 ---
