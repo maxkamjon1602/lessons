@@ -310,7 +310,7 @@ addEventListener('keyup', e=>{
   if(k==='a'||k==='arrowleft')  input.left=false;
   if(k==='d'||k==='arrowright') input.right=false;
   if(k==='w'||k==='arrowup'||k===' ') { jumpHeld=false; }
-  if(k==='s'||k==='arrowdown')  downHeld=true;
+  if(k==='s'||k==='arrowdown')  downHeld=false;
 });
 function setPPU(ppu){ PIXELS_PER_UNIT=THREE.MathUtils.clamp(ppu,MIN_PPU,MAX_PPU); }
 
@@ -520,7 +520,11 @@ function loop(now){
   updateDZHud(dz);
 
   hud.textContent =
-    `L11 · Step 4 — grounded=${grounded} · vy=${vy.toFixed(2)} · slope=${grounded ? slopeDeg.toFixed(1)+'°' : '—'} · coyote=${Math.max(0,coyoteTimer).toFixed(2)} · buffer=${Math.max(0,jumpBufferTimer).toFixed(2)} · drop=${Math.max(0,dropTimer).toFixed(2)} · clamp=${clampEnabled?'on':'off'}`;
+    `L11 · Step 4 — grounded=${grounded} · vy=${vy.toFixed(2)} · slope=${grounded ? slopeDeg.toFixed(1)+'°' : '—'} · ` +
+    `coyote=${Math.max(0,coyoteTimer).toFixed(2)} · buffer=${Math.max(0,jumpBufferTimer).toFixed(2)} · ` +
+    `drop=${Math.max(0,dropTimer).toFixed(2)} · clamp=${clampEnabled?'on':'off'} · ` +
+    `down=${downHeld} · onOneWay=${!!(lastGround && lastGround.userData.oneWay)}`;
+
 
   renderer.render(scene, camera);
 
