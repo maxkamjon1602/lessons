@@ -18,13 +18,13 @@ We keep the exact **scene, lights, camera, and controls**, and add a chain of **
 ![Pipeline](pipeline.png)
 
 ## 📦 Files (Step 1 → 7)
-- **01 — Composer setup**: Introduces `EffectComposer` and `RenderPass` (replaces `renderer.render`).
-- **02 — FXAA**: Adds `ShaderPass(FXAAShader)` for screen‑space anti‑aliasing; resolution uniform updates on resize.
-- **03 — Bloom**: Adds `UnrealBloomPass` (strength, radius, threshold) and hotkeys to tune it live.
-- **04 — Vignette & Grade**: Custom `ShaderPass` with **lift/gamma/gain** and a vignette mask.
-- **05 — Bokeh DoF**: Adds **depth‑of‑field** with `BokehPass` (focus, aperture).
-- **06 — Chain & Order**: Demonstrates how **FXAA↔Bloom** order changes halo look; single‑view toggle.
-- **07 — Presets & Performance**: Presets (Clean/Filmic/Dreamy/Off), DPR toggle, tiny FPS/ms HUD, clamps & reset.
+- [Step 01 — Composer setup](./09-01-composer-setup.html): Introduces `EffectComposer` and `RenderPass` (replaces `renderer.render`).
+- [Step 02 — FXAA](./09-02-fxaa.html): Adds `ShaderPass(FXAAShader)` for screen‑space anti‑aliasing; resolution uniform updates on resize.
+- [Step 03 — Bloom](./09-03-bloom.html): Adds `UnrealBloomPass` (strength, radius, threshold) and hotkeys to tune it live.
+- [Step 04 — Vignette & Grade](./09-04-vignette-and-grade.html): Custom `ShaderPass` with **lift/gamma/gain** and a vignette mask.
+- [Step 05 — Bokeh DoF](./09-05-bokeh-dof.html): Adds **depth‑of‑field** with `BokehPass` (focus, aperture).
+- [Step 06 — Chain & Order](./09-06-chain-and-order.html): Demonstrates how **FXAA↔Bloom** order changes halo look; single‑view toggle.
+- [Step 07 — Presets & Performance](./09-07-presets-and-performance.html): Presets (Clean/Filmic/Dreamy/Off), DPR toggle, tiny FPS/ms HUD, clamps & reset.
 
 ## 🧠 New concepts
 - **EffectComposer**: a film‑style pipeline of full‑screen passes.

@@ -49,27 +49,27 @@ lesson-06/
 
 ## 🔎 Step‑by‑Step Guide
 
-### **01 — Basic Material Types**
+### [Step 01 — Basic Material Types](./06-01-Basic-material-types.html)
 - Introduces `MeshBasicMaterial` (unlit color) vs. `MeshStandardMaterial` (lit, reacts to lights).
 
-### **02 — Colors, Metalness & Roughness**
+### [Step 02 — Colors, Metalness & Roughness](./06-02-Colors-metalness-roughness.html)
 - Learn how **color**, **metalness**, and **roughness** define a material’s realism.
 - Use keys `C` (cycle color) and `M` (cycle metal/rough presets).
 
-### **03 — Procedural Wood Texture**
+### [Step 03 — Procedural Wood Texture](./06-03-Apply-image-texture-wood-canvas.html)
 - Generate a **wood grain texture** procedurally in Canvas2D and apply it to a plane.
 
-### **04 — Checkerboard + Bump Map**
+### [Step 04 — Checkerboard + Bump Map](./06-04-Color-plus-bump-map-cube.html)
 - Combine a **checker texture** with a **bump map** to add surface relief to a cube.
 
-### **05 — Transparency + Alpha Mask**
+### [Step 05 — Transparency + Alpha Mask](./06-05-Transparency-and-alpha-map-triangle.html)
 - Use `MeshPhysicalMaterial` with `transmission` and a custom **alpha map** to simulate glass.
 
-### **06 — Environment Map Reflections**
+### [Step 06 — Environment Map Reflections](./06-06-Environment-map-reflections.html)
 - Apply a **procedural cube map** as the scene’s background and reflection source.
 - Refine gold material with reflections and clearcoat.
 
-### **07 — Final Polished Scene**
+### [Step 07 — Final Polished Scene](./06-07-Final-polish-combined-scene.html)
 - Bring it all together:
   - **Wooden plane**
   - **Checker cube**

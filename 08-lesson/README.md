@@ -15,13 +15,13 @@ Each step is a **single HTML file** (no npm). All files share the same **scene s
 ---
 
 ## 🗂 Steps Overview
-1. **Perspective vs Orthographic** — swap cameras with **1/2** and see how scale/foreshortening changes.
-2. **FOV & Aspect** — use **[** / **]** to change FOV; resize the window to see aspect impact.
-3. **Zoom vs Dolly** — **Z/X** changes FOV; **W/S** moves the camera in/out; HUD shows FOV vs Distance.
-4. **Fit to Object** — key **1/2/3/0** frames Sphere/Cube/Pyramid/All using a robust `fitCameraToObject` utility.
-5. **Screen ↔ World** — click the ground to drop 3D markers via `Raycaster` (screen → NDC → ray → intersection).
-6. **Simulated Depth of Field** — **↑/↓** adjusts focus distance; objects away from focus gently fade.
-7. **Cinematic Camera Path** — press **Space** to play/pause a fly‑through; **R** to restart; subtle FOV ease.
+1. [Step 01 — Perspective vs Orthographic](./08-01-camera-types.html) — swap cameras with **1/2** and see how scale/foreshortening changes.
+2. [Step 02 — FOV & Aspect](./08-02-fov-and-aspect.html) — use **[** / **]** to change FOV; resize the window to see aspect impact.
+3. [Step 03 — Zoom vs Dolly](./08-03-zoom-vs-dolly.html) — **Z/X** changes FOV; **W/S** moves the camera in/out; HUD shows FOV vs Distance.
+4. [Step 04 — Fit to Object](./08-04-fit-camera-to-object.html) — key **1/2/3/0** frames Sphere/Cube/Pyramid/All using a robust `fitCameraToObject` utility.
+5. [Step 05 — Screen ↔ World](./08-05-screen-world-coordinates.html) — click the ground to drop 3D markers via `Raycaster` (screen → NDC → ray → intersection).
+6. [Step 06 — Simulated Depth of Field](./08-06-manual-orbit-and-pan.html) — **↑/↓** adjusts focus distance; objects away from focus gently fade.
+7. [Step 07 — Cinematic Camera Path](./08-07-cinematic-camera-path.html) — press **Space** to play/pause a fly‑through; **R** to restart; subtle FOV ease.
 
 ## 💪 Challenges
 - Add controls to modify the camera's near and far clipping planes at runtime.
@@ -65,13 +65,13 @@ By the end of Lesson 08, learners can:
 ---
 
 ## 📎 Files (1-per-step)
-- `01-Camera-types-Perspective-vs-Ortho.html`
-- `02-FOV-and-Aspect.html`
-- `03-Zoom-vs-Dolly.html`
-- `04-Fit-Camera-to-Object.html`
-- `05-Screen-World-Coordinates.html`
-- `06-Depth-of-Field.html`
-- `07-Cinematic-Camera-Path.html`
+- `08-01-camera-types.html`
+- `08-02-fov-and-aspect.html`
+- `08-03-zoom-vs-dolly.html`
+- `08-04-fit-camera-to-object.html`
+- `08-05-screen-world-coordinates.html`
+- `08-06-manual-orbit-and-pan.html`
+- `08-07-cinematic-camera-path.html`
 
 Happy coding! ✨
 
