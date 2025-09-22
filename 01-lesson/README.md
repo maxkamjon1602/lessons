@@ -23,6 +23,7 @@ This lesson introduces **Three.js** step by step, building from a blank canvas t
 ## 📂 Project Structure
 Each step is a self-contained mini-project. Open `index.html` in your browser or run a static server.
 
+```markdown
 [01-renderer]: ./lesson-01-increments/01-01-renderer.html
 [02-ortho-camera]: ./lesson-01-increments/01-02-ortho-camera.html
 [03-square]: ./lesson-01-increments/01-03-square.html
@@ -31,7 +32,6 @@ Each step is a self-contained mini-project. Open `index.html` in your browser or
 [06-rotate-z]: ./lesson-01-increments/01-06-rotate-z.html
 [07-rotate-y]: ./lesson-01-increments/01-07-rotate-y.html
 
-```markdown
 lesson-01-increments/
 ├── [01-renderer]           # Setup renderer and dark background
 ├── [02-ortho-camera]       # Add orthographic camera in pixel units
