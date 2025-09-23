@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Lesson 11 · Step 4 — One-Way Platforms (Edge-Aware DZ + Fixes)</title>
+<title>Lesson 11 · Step 5 — Moving Platforms (Ride + Carry)</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#131722}
   #app{width:100%;height:100%}
   .hud{position:fixed;top:8px;left:8px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.55);color:#fff;font:13px/1.35 monospace}
   .help{position:fixed;bottom:8px;left:8px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;font:12px/1.35 monospace}
-  /* DZ is positioned by JS (no center transform) */
   #dz{position:fixed;left:0;top:0;pointer-events:none;border:2px solid rgba(255,255,255,.85)}
 </style>
 <script type="importmap">
@@ -19,7 +18,7 @@
 <body>
 <div id="app"></div>
 <div id="hud" class="hud">
-  L11 · Step 4 — grounded=false · vy=0.00 · slope=— · coyote=0.00 · buffer=0.00 · drop=0.00 · clamp=on
+  L11 · Step 5 — grounded=false · vy=0.00 · carry=0.00,0.00 · slope=— · coyote=0.00 · buffer=0.00 · drop=0.00 · clamp=on
 </div>
 <div id="dz"></div>
 <div class="help">
@@ -52,7 +51,7 @@ const fg  = new THREE.Group();  fg.userData.parallax  = 1.50;
 bg.position.z=-10; mid.position.z=0; fg.position.z=10;
 scene.add(bg, mid, fg);
 
-// Sky gradient (brighter)
+// Sky gradient
 const skyMat = new THREE.ShaderMaterial({
   uniforms:{ top:{value:new THREE.Color(0x334a7a)}, bottom:{value:new THREE.Color(0x1a2336)} },
   vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
@@ -64,14 +63,16 @@ const sky = new THREE.Mesh(new THREE.PlaneGeometry(1,1), skyMat);
 sky.renderOrder = -100; bg.add(sky);
 
 // ---------------- Level geometry ----------------
-const LEVEL_Z = -0.05;       // ground slightly behind player
-const THICK   = 0.30;        // thin Z so nothing occludes player
+const LEVEL_Z = -0.05;
+const THICK   = 0.30;
 const groundMat = new THREE.MeshStandardMaterial({ color:0x2e3758, roughness:0.9 });
 const rampMat   = new THREE.MeshStandardMaterial({ color:0x3a5b8f, roughness:0.85 });
 const oneWayMat = new THREE.MeshStandardMaterial({ color:0x7d5cff, roughness:0.6, emissive:0x171133, emissiveIntensity:0.25 });
+// === NEW: material for movers
+const moverMat  = new THREE.MeshStandardMaterial({ color:0xffa200, roughness:0.55, metalness:0.0, emissive:0x331a00, emissiveIntensity:0.25 });
 
 let groundWireframe=false;
-function setWireframe(on){ groundMat.wireframe=on; rampMat.wireframe=on; oneWayMat.wireframe=on; }
+function setWireframe(on){ groundMat.wireframe=on; rampMat.wireframe=on; oneWayMat.wireframe=on; moverMat.wireframe=on; }
 
 const level = new THREE.Group(); level.position.z = LEVEL_Z; mid.add(level);
 
@@ -79,14 +80,13 @@ function flat(w, y=-1, x=0){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,0.5,THICK), groundMat);
   m.position.set(x,y-0.25,0); m.receiveShadow=true; return m;
 }
-// Triangular wedge ramp (no giant rotated box)
 function ramp(w, h, x=0, y=-1, up=true){
   const s = new THREE.Shape();
   if (up){ s.moveTo(-w/2,0); s.lineTo(w/2,0); s.lineTo(w/2,h); }
   else   { s.moveTo(-w/2,0); s.lineTo(w/2,0); s.lineTo(-w/2,h); }
   s.closePath();
   const geo = new THREE.ExtrudeGeometry(s, { depth: THICK, bevelEnabled:false });
-  geo.translate(0,0,-THICK/2); // center on z=0
+  geo.translate(0,0,-THICK/2);
   const m = new THREE.Mesh(geo, rampMat);
   m.position.set(x,y,0); m.receiveShadow=true; return m;
 }
@@ -96,6 +96,25 @@ function oneWay(w=4, x=0, y=1.2){
   m.userData.oneWay = true;
   return m;
 }
+
+// === NEW: moving platform factory (ping-pong between from→to)
+function movingPlatform({from=[0,0], to=[4,0], w=3, h=0.35, speed=2.0}){
+  const geo = new THREE.BoxGeometry(w, h, THICK);
+  const m = new THREE.Mesh(geo, moverMat);
+  // 'from'/'to' are the TOP surface coordinates; we store h to maintain top alignment
+  m.userData.mover = {
+    from: new THREE.Vector2(from[0], from[1]),
+    to:   new THREE.Vector2(to[0],   to[1]),
+    u: 0, dir: 1, speed, len: new THREE.Vector2(to[0]-from[0], to[1]-from[1]).length(),
+    h, last: new THREE.Vector2(), delta: new THREE.Vector2()
+  };
+  // place at 'from' (center y = topY - h/2)
+  m.position.set(from[0], from[1]-h*0.5, 0);
+  m.userData.mover.last.set(m.position.x, m.position.y);
+  level.add(m);
+  return m;
+}
+
 // Course
 level.add(flat(12,-1, -12));
 level.add(ramp(8,3, -1,-1, true));
@@ -104,6 +123,11 @@ level.add(ramp(6,-2, 14,0.5, false));
 level.add(flat(12,-1, 23));
 level.add(oneWay(4, 5.5, 1.1));
 level.add(oneWay(5, 18.0, 2.3));
+
+// === NEW: add movers (one horizontal bridge, one vertical elevator)
+const movers = [];
+movers.push(movingPlatform({ from:[-4, 1.4], to:[ 2, 1.4], w:3.5, h:0.35, speed:2.0 })); // horizontal ping-pong
+movers.push(movingPlatform({ from:[16, 0.8], to:[16, 3.2], w:3.5, h:0.35, speed:1.6 })); // vertical ping-pong
 
 // ---------------- Lights ----------------
 scene.add(new THREE.HemisphereLight(0x9fb8ff, 0x1b2030, 0.65));
@@ -124,7 +148,7 @@ let usingOrtho=true; let camera=ortho;
 let camX=0, camY=0, camVX=0, camVY=0;
 
 const WORLD = { minX:-14, maxX:26, minY:-4, maxY:8 };
-let clampEnabled = true; // toggled with 'M'
+let clampEnabled = true;
 
 function visibleUnitsOrtho(){ const halfH=(window.innerHeight/PIXELS_PER_UNIT)*0.5; return [halfH*aspect(), halfH]; }
 function visibleUnitsPersp(){ const halfH=Math.tan((Math.PI/180)*(persp.fov*0.5))*perspDist; return [halfH*aspect(), halfH]; }
@@ -155,39 +179,25 @@ function clampToWorld(cx, cy){
   ];
 }
 
-// -------- Edge-aware + direction-aware dead-zone --------
-let DZ_W=0.40, DZ_H=0.30;
-const EPS = 1e-3;
-
+let DZ_W=0.40, DZ_H=0.30; const EPS = 1e-3;
 function dzBounds(moveX=0, moveY=0){
   const [halfW, halfH] = visibleUnits();
   const viewL = camX - halfW, viewR = camX + halfW;
   const viewB = camY - halfH, viewT = camY + halfH;
-
-  // If clamping is OFF, keep centered DZ always.
   if(!clampEnabled){
     const dzHalfW = halfW * DZ_W, dzHalfH = halfH * DZ_H;
-    return { left:camX-dzHalfW, right:camX+dzHalfW, bottom:camY-dzHalfH, top:camY+dzHalfH,
-             halfW, halfH, viewL, viewB };
+    return { left:camX-dzHalfW, right:camX+dzHalfW, bottom:camY-dzHalfH, top:camY+dzHalfH, halfW, halfH, viewL, viewB };
   }
-
   const atL = Math.abs(camX - (WORLD.minX + halfW)) <= EPS;
   const atR = Math.abs(camX - (WORLD.maxX - halfW)) <= EPS;
   const atB = Math.abs(camY - (WORLD.minY + halfH)) <= EPS;
   const atT = Math.abs(camY - (WORLD.maxY - halfH)) <= EPS;
-
-  const dzHalfW = halfW * DZ_W;
-  const dzHalfH = halfH * DZ_H;
-
-  let left   = camX - dzHalfW, right  = camX + dzHalfW;
-  let bottom = camY - dzHalfH, top    = camY + dzHalfH;
-
-  // Anchor only when moving INTO the clamped edge; otherwise stay centered for quick release.
+  const dzHalfW = halfW * DZ_W, dzHalfH = halfH * DZ_H;
+  let left = camX - dzHalfW, right = camX + dzHalfW, bottom = camY - dzHalfH, top = camY + dzHalfH;
   if (atL && moveX < -0.001) { left  = viewL; right = Math.min(viewL + 2*dzHalfW, viewR); }
   if (atR && moveX >  0.001) { right = viewR; left  = Math.max(viewR - 2*dzHalfW, viewL); }
   if (atB && moveY < -0.001) { bottom= viewB; top   = Math.min(viewB + 2*dzHalfH, viewT); }
   if (atT && moveY >  0.001) { top   = viewT; bottom= Math.max(viewT - 2*dzHalfH, viewB); }
-
   return { left, right, bottom, top, halfW, halfH, viewL, viewB };
 }
 function updateDZHud(dz){
@@ -200,34 +210,24 @@ function updateDZHud(dz){
   dzEl.style.left   = Math.round(pxX) + 'px';
   dzEl.style.top    = Math.round(pxY) + 'px';
 }
-// Direction-aware, edge-aware camera follow.
-// Uses lastPlayerX/Y to know which way the player is moving.
+
+// Direction-aware camera follow
 function followCamera(dt){
-  // player movement this frame
   const moveX = player.position.x - lastPlayerX;
   const moveY = player.position.y - lastPlayerY;
-
-  // dead-zone anchored to edges only when pushing into them
   const dz = dzBounds(moveX, moveY);
-
   let shiftX = 0, shiftY = 0;
   if (player.position.x < dz.left)   shiftX = player.position.x - dz.left;
   if (player.position.x > dz.right)  shiftX = player.position.x - dz.right;
   if (player.position.y < dz.bottom) shiftY = player.position.y - dz.bottom;
   if (player.position.y > dz.top)    shiftY = player.position.y - dz.top;
-
-  // target camera center
-  let targetX = camX + shiftX;
-  let targetY = camY + shiftY;
+  let targetX = camX + shiftX, targetY = camY + shiftY;
   if (clampEnabled) [targetX, targetY] = clampToWorld(targetX, targetY);
-
-  // critically damped spring to target
   const ax = STIFF * (targetX - camX) - DAMP * camVX;
   const ay = STIFF * (targetY - camY) - DAMP * camVY;
   camVX += ax * dt;  camVY += ay * dt;
   camX  += camVX * dt; camY  += camVY * dt;
 }
-
 
 function applyParallax(){
   const set=(g,f)=>{ g.position.x = camX*(1-f); g.position.y = camY*(1-f); };
@@ -240,7 +240,7 @@ function updateRig(){
 
 // ---------------- Player controller (with one-way) ----------------
 const PLAYER_HEIGHT=1.1, PLAYER_HALF=PLAYER_HEIGHT*0.5, PLAYER_WIDTH=0.8;
-const MOVE_SPEED=6.0, AIR_SPEED=5.0;     // conservative feel
+const MOVE_SPEED=6.0, AIR_SPEED=5.0;
 const GRAVITY=-18.0;
 const JUMP_SPEED=8.5;
 const JUMP_CUT_MULT=2.4;
@@ -249,13 +249,9 @@ const COYOTE_TIME=0.12, JUMP_BUFFER=0.12;
 const SNAP_LOCK_AFTER_JUMP=0.06;
 const SKIN=0.02, RADIUS=PLAYER_WIDTH*0.5;
 
-// --- Drop-through input gating ---
-const DOWN_BUFFER = 0.20;      // seconds: tap-Down within this window + Jump also counts
-const DROP_ARM_TIME = 0.25;    // seconds: after Jump+Down, we wait to be grounded to execute drop
-
-let downBuffer = 0;            // time left since last Down press
-let dropArmed  = 0;            // time left to perform the drop when grounded
-
+// Drop-through gating (from your working patch)
+const DOWN_BUFFER = 0.20, DROP_ARM_TIME = 0.25;
+let downBuffer = 0, dropArmed = 0;
 const DROP_TIME=0.25, DROP_LOCK=0.08;
 let dropIgnoreObj=null, dropTimer=0;
 
@@ -263,7 +259,7 @@ const player = new THREE.Mesh(
   new THREE.BoxGeometry(PLAYER_WIDTH, PLAYER_HEIGHT, 0.8),
   new THREE.MeshStandardMaterial({ color:0x88ff88, emissive:0x224422, emissiveIntensity:0.12 })
 );
-player.position.set(-12,-0.2,+0.05); // slight +Z so terrain never covers it
+player.position.set(-12,-0.2,+0.05);
 mid.add(player);
 
 let lastPlayerX = player.position.x, lastPlayerY = player.position.y;
@@ -274,6 +270,7 @@ let grounded=false, slopeDeg=0, groundNormal=new THREE.Vector3(0,1,0), lastGroun
 let vx=0, vy=0, coyoteTimer=0, jumpBufferTimer=0, snapLock=0;
 let jumpHeld=false, downHeld=false;
 
+// === IMPORTANT: build colliders AFTER adding movers so they’re included
 const colliders=[]; level.traverse(o=>{ if(o.isMesh) colliders.push(o); });
 
 // Debug viz
@@ -286,69 +283,41 @@ let showRay=true, showSweep=false;
 
 // Input
 const input = { left:false, right:false };
-
 addEventListener('keydown', e=>{
-  const k = e.key.toLowerCase();
-
-  if (k==='a' || k==='arrowleft')  input.left  = true;
-  if (k==='d' || k==='arrowright') input.right = true;
-
-  if (k==='s' || k==='arrowdown') {
-    downHeld   = true;
-    downBuffer = DOWN_BUFFER;          // remember a quick Down tap
-  }
-
-  if (k==='w' || k==='arrowup' || k===' ') {
+  const k=e.key.toLowerCase();
+  if(k==='a'||k==='arrowleft')  input.left=true;
+  if(k==='d'||k==='arrowright') input.right=true;
+  if(k==='s'||k==='arrowdown'){ downHeld=true; downBuffer=DOWN_BUFFER; }
+  if(k==='w'||k==='arrowup'||k===' '){
     const downNow = (downHeld || downBuffer > 0);
-
-    // ✅ If we are currently grounded ON a one-way and Down is active,
-    // drop immediately instead of arming or jumping.
-    if (downNow && grounded && lastGround && lastGround.userData.oneWay) {
-      requestDropThrough();      // will clear grounded & push us down
-      jumpBufferTimer = 0;       // prevent a jump from firing this frame
-      dropArmed = 0;             // no need to arm; we already dropped
-      return;                    // stop handling the jump key here
+    if (downNow && grounded && lastGround && lastGround.userData.oneWay){
+      requestDropThrough();
+      jumpBufferTimer = 0; dropArmed = 0; return;
     }
-
-    // otherwise it's a normal jump press
-    jumpHeld        = true;
-    jumpBufferTimer = JUMP_BUFFER;
-
-    // if Down is active but we're not quite grounded yet, arm a drop
+    jumpHeld=true; jumpBufferTimer=JUMP_BUFFER;
     if (downNow) dropArmed = DROP_ARM_TIME;
   }
-
-
-  if (k==='g') { showRay = !showRay; rayDown.visible = rayNormal.visible = showRay; }
-  if (k==='c') { showSweep = !showSweep; sweepViz.visible = showSweep; }
-  if (k==='h') { groundWireframe = !groundWireframe; setWireframe(groundWireframe); }
-  if (k==='r') { player.position.set(-12,-0.2,+0.05); vx=vy=0; coyoteTimer=jumpBufferTimer=snapLock=dropTimer=0; lastGround=null; }
-  if (k==='p') { usingOrtho = !usingOrtho; updateRig(); }
-  if (k==='m') { clampEnabled = !clampEnabled; }
-  if (k==='1') { bg.userData.parallax=0.40; mid.userData.parallax=1.00; fg.userData.parallax=1.20; }
-  if (k==='2') { bg.userData.parallax=0.25; mid.userData.parallax=1.00; fg.userData.parallax=1.50; }
-  if (k==='3') { bg.userData.parallax=0.10; mid.userData.parallax=1.00; fg.userData.parallax=1.60; }
-  if (k==='4') { bg.userData.parallax=0.05; mid.userData.parallax=1.00; fg.userData.parallax=1.80; }
-  if (k==='k') setPPU(PIXELS_PER_UNIT-4);
-  if (k==='l') setPPU(PIXELS_PER_UNIT+4);
-  if (k==='b') { bounds.visible = !bounds.visible; }
+  if(k==='g'){ showRay=!showRay; rayDown.visible=rayNormal.visible=showRay; }
+  if(k==='c'){ showSweep=!showSweep; sweepViz.visible=showSweep; }
+  if(k==='h'){ groundWireframe=!groundWireframe; setWireframe(groundWireframe); }
+  if(k==='r'){ player.position.set(-12,-0.2,+0.05); vx=vy=0; coyoteTimer=jumpBufferTimer=snapLock=dropTimer=0; lastGround=null; }
+  if(k==='p'){ usingOrtho=!usingOrtho; updateRig(); }
+  if(k==='m'){ clampEnabled=!clampEnabled; }
+  if(k==='1'){ bg.userData.parallax=0.40; mid.userData.parallax=1.00; fg.userData.parallax=1.20; }
+  if(k==='2'){ bg.userData.parallax=0.25; mid.userData.parallax=1.00; fg.userData.parallax=1.50; }
+  if(k==='3'){ bg.userData.parallax=0.10; mid.userData.parallax=1.00; fg.userData.parallax=1.60; }
+  if(k==='4'){ bg.userData.parallax=0.05; mid.userData.parallax=1.00; fg.userData.parallax=1.80; }
+  if(k==='k') setPPU(PIXELS_PER_UNIT-4);
+  if(k==='l') setPPU(PIXELS_PER_UNIT+4);
+  if(k==='b'){ bounds.visible=!bounds.visible; }
 });
-
 addEventListener('keyup', e=>{
-  const k = e.key.toLowerCase();
-
-  if (k==='a' || k==='arrowleft')  input.left  = false;
-  if (k==='d' || k==='arrowright') input.right = false;
-
-  if (k==='s' || k==='arrowdown')  downHeld    = false;
-
-  if (k==='w' || k==='arrowup' || k===' ') {
-    // release jump
-    jumpHeld = false;
-    // (do NOT arm drop, and do NOT set jumpBuffer here)
-  }
+  const k=e.key.toLowerCase();
+  if(k==='a'||k==='arrowleft')  input.left=false;
+  if(k==='d'||k==='arrowright') input.right=false;
+  if(k==='s'||k==='arrowdown')  downHeld=false;
+  if(k==='w'||k==='arrowup'||k===' ') { jumpHeld=false; }
 });
-
 function setPPU(ppu){ PIXELS_PER_UNIT=THREE.MathUtils.clamp(ppu,MIN_PPU,MAX_PPU); }
 
 // World bounds overlay
@@ -368,7 +337,7 @@ bounds.position.z = 0.01; bounds.visible=false; mid.add(bounds);
 // -------- Ground snap (with one-way rules) --------
 const normalMat = new THREE.Matrix3();
 function snapToGround(prevFeetY){
-  if(snapLock>0) { grounded=false; return; } // ignore soon after jump/drop
+  if(snapLock>0) { grounded=false; return; }
   grounded=false; slopeDeg=0;
 
   const origin = new THREE.Vector3(player.position.x, player.position.y - PLAYER_HALF + 0.05, player.position.z);
@@ -387,15 +356,15 @@ function snapToGround(prevFeetY){
 
     normalMat.getNormalMatrix(h.object.matrixWorld);
     const n = h.face.normal.clone().applyNormalMatrix(normalMat).normalize();
-    if(n.y <= 0.45) continue; // must be ground-ish
+    if(n.y <= 0.45) continue;
 
     const topY = h.point.y;
     const dy = origin.y - h.point.y;
 
     if(isOneWay){
-      if(vy > 0) continue;                    // rising: pass through
-      if(prevFeetY < topY - 0.01) continue;   // coming from below: pass through
-      if(dropTimer > 0 && dropIgnoreObj === h.object) continue; // active drop-through
+      if(vy > 0) continue;                    // rising: pass-through
+      if(prevFeetY < topY - 0.01) continue;   // from below: pass-through
+      if(dropTimer > 0 && dropIgnoreObj === h.object) continue; // active drop
     }
 
     const angle = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(n.dot(UP),-1,1)));
@@ -435,13 +404,13 @@ function sweepCollide(prevX, prevY, stepX, stepY){
 
     for(const h of hits){
       if(!h.face) continue;
-      if(h.object.userData.oneWay) continue; // skip one-way entirely in sweep
+      if(h.object.userData.oneWay) continue; // skip one-way in sweep
 
       normalMat.getNormalMatrix(h.object.matrixWorld);
       const n = h.face.normal.clone().applyNormalMatrix(normalMat).normalize();
 
-      if(stepY < 0 && n.y > 0.45) continue;  // ignore ground while falling; snap handles it
-      if(n.dot(dir) < -0.2 && h.distance < minHit){ // opposing face
+      if(stepY < 0 && n.y > 0.45) continue; // ignore ground while falling; snap handles it
+      if(n.dot(dir) < -0.2 && h.distance < minHit){
         minHit = h.distance; best = { normal:n, point:h.point.clone() };
       }
       break; // nearest-first
@@ -466,24 +435,49 @@ function sweepCollide(prevX, prevY, stepX, stepY){
   return { dx, dy, hit:true };
 }
 
+// Drop-through (from your working patch)
 function requestDropThrough(){
   if (grounded && lastGround && lastGround.userData.oneWay) {
     dropIgnoreObj = lastGround;
-    dropTimer     = DROP_TIME;           // temporarily ignore this platform
+    dropTimer     = DROP_TIME;
     snapLock      = Math.max(snapLock, DROP_LOCK);
     grounded      = false;
-    coyoteTimer   = 0;                   // ✅ cancel coyote so jump can't trigger
-    jumpBufferTimer = 0;                 // ✅ cancel any pending jump
-    vy            = Math.min(vy, -3.5);  // stronger downward nudge
-    player.position.y -= 0.06;           // tiny offset to exit the top face
+    coyoteTimer   = 0;
+    jumpBufferTimer = 0;
+    vy            = Math.min(vy, -3.5);
+    player.position.y -= 0.06;
+  }
+}
+
+// === NEW: mover update + carry
+function updateMovers(dt){
+  for(const m of movers){
+    const d = m.userData.mover;
+    if(d.len <= 0){ d.delta.set(0,0); continue; }
+
+    // save last center pos
+    d.last.set(m.position.x, m.position.y);
+
+    // advance param
+    d.u += d.dir * (d.speed * dt / d.len);
+    if(d.u > 1){ d.u = 1 - (d.u - 1); d.dir = -1; }
+    if(d.u < 0){ d.u = -d.u;          d.dir =  1; }
+
+    // lerp top position, then convert to center (topY - h/2)
+    const topX = THREE.MathUtils.lerp(d.from.x, d.to.x, d.u);
+    const topY = THREE.MathUtils.lerp(d.from.y, d.to.y, d.u);
+    m.position.set(topX, topY - d.h*0.5, 0);
+
+    // delta center this frame
+    d.delta.set(m.position.x - d.last.x, m.position.y - d.last.y);
   }
 }
 
 // ---------------- Resize ----------------
 addEventListener('resize', ()=>{
   renderer.setSize(window.innerWidth, window.innerHeight);
-  updateRig();                     // camera/parallax
-  const dz = dzBounds(0,0);        // neutral movement for HUD on resize
+  updateRig();
+  const dz = dzBounds(0,0);
   updateDZHud(dz);
 });
 
@@ -503,25 +497,35 @@ function loop(now){
   if (downBuffer > 0) downBuffer -= dt;
   if (dropArmed  > 0) dropArmed  -= dt;
 
-  // If Jump+Down was armed, execute drop the next moment we're grounded on a one-way
+  // === NEW: move platforms first
+  updateMovers(dt);
+
+  // === NEW: if riding a mover, carry the player by the platform delta
+  let carryX=0, carryY=0;
+  if (grounded && lastGround && lastGround.userData.mover){
+    const d = lastGround.userData.mover;
+    carryX = d.delta.x; carryY = d.delta.y;
+    player.position.x += carryX;
+    player.position.y += carryY;
+  }
+
+  // If Jump+Down was armed, drop when grounded on one-way
   if (dropArmed > 0 && dropTimer <= 0 && grounded && lastGround && lastGround.userData.oneWay) {
-    requestDropThrough();   // performs the actual ignore + nudge
-    dropArmed = 0;          // consume the arm
+    requestDropThrough();
+    dropArmed = 0;
   }
 
   // Consume buffered jump (only if *not* dropping)
   if (jumpBufferTimer > 0
-      && dropArmed <= 0            // ✅ don't jump while waiting to drop
-      && dropTimer <= 0            // ✅ don't jump during the ignore window
+      && dropArmed <= 0
+      && dropTimer <= 0
       && (grounded || coyoteTimer > 0)) {
-
     vy = JUMP_SPEED;
     grounded = false;
     coyoteTimer = 0;
     jumpBufferTimer = 0;
     snapLock = SNAP_LOCK_AFTER_JUMP;
   }
-
 
   // extra gravity for short hops
   const extraG = (!jumpHeld && vy > 0) ? (JUMP_CUT_MULT * GRAVITY) : 0;
@@ -557,23 +561,19 @@ function loop(now){
   snapToGround(prevFeetY);
   if(!grounded && wasGrounded && coyoteTimer<=0) coyoteTimer = COYOTE_TIME;
 
-  // Direction-aware DZ: use actual player movement this frame
+  // Follow & HUD
   const moveX = player.position.x - lastPlayerX;
   const moveY = player.position.y - lastPlayerY;
   const dz = dzBounds(moveX, moveY);
 
-  // Follow & render
   followCamera(dt);
   updateRig();
   updateDZHud(dz);
 
   hud.textContent =
-    `L11 · Step 4 — grounded=${grounded} · vy=${vy.toFixed(2)} · slope=${grounded ? slopeDeg.toFixed(1)+'°' : '—'} · ` +
-    `coyote=${Math.max(0,coyoteTimer).toFixed(2)} · buffer=${Math.max(0,jumpBufferTimer).toFixed(2)} · ` +
-    `drop=${Math.max(0,dropTimer).toFixed(2)} · clamp=${clampEnabled?'on':'off'} · ` +
-    `down=${downHeld} · onOneWay=${!!(lastGround && lastGround.userData.oneWay)} 
-    · down=${downHeld} · dbuf=${downBuffer.toFixed(2)} · armed=${dropArmed.toFixed(2)}`;
-
+    `L11 · Step 5 — grounded=${grounded} · vy=${vy.toFixed(2)} · carry=${carryX.toFixed(2)},${carryY.toFixed(2)} · ` +
+    `slope=${grounded ? slopeDeg.toFixed(1)+'°' : '—'} · coyote=${Math.max(0,coyoteTimer).toFixed(2)} · buffer=${Math.max(0,jumpBufferTimer).toFixed(2)} · ` +
+    `drop=${Math.max(0,dropTimer).toFixed(2)} · clamp=${clampEnabled?'on':'off'}`;
 
   renderer.render(scene, camera);
 

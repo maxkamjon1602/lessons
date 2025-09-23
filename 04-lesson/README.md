@@ -1,63 +1,33 @@
 ## License
-This project is licensed under the **UZ Learn Try Personal Education License (UT-PEL) v1.0**.  
+This project is licensed under the **UZ Learn Try Personal Education License (UT-PEL) v1.0**.
 **Not** open source. **Personal self-learning only.** No redistribution, no public hosting, no derivatives, no commercial or instructional use, and no AI/data-mining. See [LICENSE](../LICENSE).
 
 ---
 
-# Lesson 4 — First Taste of 3D (Fixed, Structured, and Demo-Ready) 🎲📐
+# 🎲 Lesson 04 — First Taste of 3D (Fixed, Structured, and Demo-Ready)
 
-This lesson moves from **2D (orthographic)** canvases to a **true 3D** scene using Three.js. You’ll switch cameras, place objects at different depths, and toggle between **2D shapes** and their **3D counterparts** using a clean visibility system built on **groups**.
+Welcome! This lesson transitions your orthographic sandbox into a true **3D showcase**. You will juggle **perspective and orthographic cameras**, pair **2D shapes** with **3D twins**, and keep everything perfectly in sync across toggles and resize events.
 
----
+## ✨ What you’ll build
+- A scene that swaps between **OrthographicCamera ↔ PerspectiveCamera** while staying centered and resize-safe.
+- Paired **2D/3D groups** whose visibility stays synchronized through a shared toggle system.
+- A polished final demo that highlights **depth**, **rotation in 3D**, and quick UI controls for comparing projections.
 
-## Overview
-- **Goal:** Understand how a scene looks under **OrthographicCamera** vs **PerspectiveCamera**, how **Z (depth)** affects appearance, and how to swap **2D shapes** for matching **3D models**.
-- **Key Concepts:** camera projections, world centering, frustum resizing, depth, groups, paired toggles, render loop.
-- **Prereqs:** Lesson 1–3 (renderer, shapes, animation loop, input).
+## 📦 Files (Step 1 → 7)
+- [Step 01 — Ortho Refresher](./04-01-ortho-refresher.html): Rebuild the centered orthographic camera with axes helpers.
+- [Step 02 — Shapes Ortho](./04-02-shapes-ortho.html): Add the square and triangle at the origin to prep for depth moves.
+- [Step 03 — Toggle Cameras](./04-03-toggle-cameras.html): Wire a button to flip Orthographic ↔ Perspective on demand.
+- [Step 04 — Z Depth](./04-04-z-depth.html): Offset shapes along Z to show how depth changes each projection.
+- [Step 05 — Paired Toggles](./04-05-paired-toggles.html): Group 2D/3D pairs and sync checkbox visibility.
+- [Step 06 — Rotating Pairs](./04-06-rotating-pairs.html): Keep the synced toggles and add rotation that runs in Perspective only.
+- [Step 07 — Final](./04-07-final.html): Ship the polished demo with camera toggle, paired groups, and focused animation.
 
----
+**File policy:** Each step lives in a single, self-contained `.html` file (no bundler). All scripts pull ESM modules from the official three.js CDN.
 
-## Project Layout
-```
-lesson-04-increments-fixed/
-├── 01-ortho-refresher        # centered orthographic camera + axes helper
-├── 02-shapes-ortho           # 2D square & triangle centered (z=0)
-├── 03-toggle-cameras         # button to switch Ortho ↔ Perspective
-├── 04-z-depth                # place shapes at different Z values
-├── 05-paired-toggles         # group2D/group3D + checkboxes for pairs
- ├── 06-rotating-pairs         # like 05 + rotation in Perspective only
- └── 07-final                  # polished demo (camera toggle + pairs + rotation)
-```
-
-## 🗂 Step Breakdown
-
-### [Step 01 — Ortho Refresher](./04-01-ortho-refresher.html)
-- Rebuild the centered orthographic camera with helpful axes for orientation.
-
-### [Step 02 — Shapes Ortho](./04-02-shapes-ortho.html)
-- Place the 2D square and triangle at the origin to prep for depth exploration.
-
-### [Step 03 — Toggle Cameras](./04-03-toggle-cameras.html)
-- Add a button to swap between orthographic and perspective views on demand.
-
-### [Step 04 — Z Depth](./04-04-z-depth.html)
-- Push shapes along the Z axis to demonstrate true depth differences.
-
-### [Step 05 — Paired Toggles](./04-05-paired-toggles.html)
-- Organize 2D/3D shape pairs in groups and sync their visibility.
-
-### [Step 06 — Rotating Pairs](./04-06-rotating-pairs.html)
-- Keep the pair toggles and add rotation that only plays in Perspective mode.
-
-### [Step 07 — Final](./04-07-final.html)
-- Deliver the polished camera toggle demo combining depth, groups, and animation.
-
-**File policy:** Each step is a single, self‑contained `.html` file (no bundler needed). All scripts use ESM from the official Three.js CDN.
-
-## 💪 Challenges
-- Replace the pyramid with a custom model loaded via `GLTFLoader`.
-- Add a UI control to switch materials or colors on the 3D shapes.
-- Enable a gentle rotation for the 2D group when in Orthographic view.
+## 🧠 New concepts
+- **Projection swap:** Compare orthographic vs perspective projections while keeping the scene aligned around `(0,0,0)`.
+- **Depth awareness:** Push content along **Z** and rebuild cameras on resize to preserve framing.
+- **Group visibility sync:** Pair meshes in `group2D`/`group3D` and flip them together through shared UI state.
 
 ---
 
@@ -86,18 +56,20 @@ Rotation only runs for **3D** in **Perspective** to highlight depth perception. 
 
 ---
 
-## Controls
-- **Camera:** *Camera: ORTHO/PERSPECTIVE* (toggle button)
-- **Pairs:** *Square/Cube*, *Triangle/Pyramid* (checkboxes)
-- **Rotation:** *Rotate 3D: ON/OFF* (Perspective mode only)
+## 🎹 Controls (common across steps)
+- **Camera toggle:** Switches between Orthographic ↔ Perspective cameras.
+- **Pair toggles:** *Square/Cube* and *Triangle/Pyramid* checkboxes control both versions of each shape.
+- **Rotation toggle (Step 06+):** *Rotate 3D: ON/OFF* enables the perspective-only animation.
 
----
+## ⚙️ Performance tips
+- Clamp device pixel ratio with `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))` to stay sharp without wasting GPU time.
+- Recreate only the active camera on resize and reuse scene objects to avoid GC thrash.
+- Pause rotations when the 3D group is hidden to keep idle CPU/GPU usage minimal.
 
-## Troubleshooting
-- **I see 2D and 3D at the same time in Ortho** → Make sure `syncVisibility()` is called after **camera toggle** and **resize**.
-- **Nothing appears** → Ensure canvas is full-size and the camera looks at `(0,0,0)`; check that `setClearColor` isn’t hiding everything.
-- **Blurry visuals** on HiDPI → We limit `renderer.setPixelRatio(Math.min(devicePixelRatio, 2))`. Increase carefully; it costs GPU time.
-- **Rotation doesn’t run** in Ortho → By design. Enable an idle animation if needed.
+## 🧩 Troubleshooting
+- **I see 2D and 3D at the same time in Ortho:** Call `syncVisibility()` after every camera toggle and resize.
+- **Nothing appears:** Ensure the canvas fills its container, the active camera looks at `(0,0,0)`, and `scene.add` contains the right group.
+- **Rotation doesn’t run in Ortho:** This is by design—rotation is tied to the Perspective branch. Enable a dedicated Ortho idle motion if desired.
 
 ---
 
@@ -105,17 +77,21 @@ Rotation only runs for **3D** in **Perspective** to highlight depth perception. 
 - Add lights + PBR materials (DirectionalLight, MeshStandardMaterial) after Step 06.
 - Replace pyramid with a real **tetrahedron** or **imported glTF**.
 - Add an **OrbitControls** step to let learners inspect the scene interactively.
-- Animate **depth** (move models along Z) to show near/far clipping. 
+- Animate **depth** (move models along Z) to show near/far clipping.
 
----
 
-## License
-All materials in this repository can only be used for personal educational purposes. Any other activity is strictly prohibited.
+## 💪 Challenges
+- Replace the pyramid with a custom model loaded via `GLTFLoader`.
+- Add a UI control to switch materials or colors on the 3D shapes.
+- Enable a gentle rotation for the 2D group when in Orthographic view.
+
+Made with ❤️ for your 2D → 3D jump.
+Happy building!
 
 ---
 
 ## Trademark Notice
 
-**UZ LEARN TRY™** is the brand identity of this project.  
-The name and materials are provided strictly for personal educational purposes.  
+**UZ LEARN TRY™** is the brand identity of this project.
+The name and materials are provided strictly for personal educational purposes.
 All rights reserved.
