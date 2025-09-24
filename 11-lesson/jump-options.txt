@@ -23,15 +23,13 @@ const SNAP_LOCK_AFTER_JUMP=0.10;
 
 Option C — Keep height, boost distance
 
-If you like the current height but want more reach:
-
 const AIR_SPEED=7.0;      // only increase air control
 const SNAP_LOCK_AFTER_JUMP=0.08;
 
 
 Adding carry-over speed at takeoff (feels snappier)
 
-Making sure your jump preserves the ground speed on the first airborne frame. Right after we consume the jump buffer (the block that sets vy = JUMP_SPEED;), adding one line:
+Making sure jump preserves the ground speed on the first airborne frame. Right after we consume the jump buffer (the block that sets vy = JUMP_SPEED;), adding one line:
 
 if (jumpBufferTimer>0 && (grounded || coyoteTimer>0)) {
   vy = JUMP_SPEED;
