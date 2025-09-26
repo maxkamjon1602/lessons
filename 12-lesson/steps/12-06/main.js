@@ -168,17 +168,22 @@ const defaultAzimuth = 0;
 let prevTarget = new THREE.Vector3(hero.mesh.position.x, hero.mesh.position.y + 1.2, hero.mesh.position.z);
 const camKeyStep = 0.02;
 function nudgeCameraByKeys() {
-  if (!controls) return;
-  if (input.camLeft)  controls.rotateLeft(+camKeyStep);
-  if (input.camRight) controls.rotateLeft(-camKeyStep);
-  if (input.camUp)    controls.rotateUp(+camKeyStep);
-  if (input.camDown)  controls.rotateUp(-camKeyStep);
+  if (input.camLeft)  camAz += camStep;
+  if (input.camRight) camAz -= camStep;
+  if (input.camUp)    camPol = Math.max(controls.minPolarAngle, camPol - camStep);
+  if (input.camDown)  camPol = Math.min(controls.maxPolarAngle, camPol + camStep);
 }
+
 
 // Glue camera to player each frame:
 // 1) compute new target at hero,
 // 2) translate camera by the same delta,
 // 3) set controls.target and update.
+// keep camAz and camPol as globals above this function:
+let camAz = 0;
+let camPol = Math.PI/2 - (Math.PI/180)*30; // default 30° up
+const camStep = 1.5 * Math.PI/180; // ~1.5° per arrow press/frame
+
 function updateCamera(dt) {
   if (!controls) return;
 
@@ -194,38 +199,26 @@ function updateCamera(dt) {
   controls.target.copy(newTarget);
   prevTarget.copy(newTarget);
 
-  // If arrow keys pressed, override
+  // --- Arrow keys adjust angles ---
   nudgeCameraByKeys();
 
-  // --- Reset logic ---
-// --- Reset logic ---
-const idle = !input.camLeft && !input.camRight && !input.camUp && !input.camDown && !mouseDownLeft && !mouseDownRight;
-if (idle) {
-  const lerp = 2.0 * dt; // interpolation speed
+  // --- Reset logic when idle ---
+  const idle = !input.camLeft && !input.camRight && !input.camUp && !input.camDown && !mouseDownLeft && !mouseDownRight;
+  if (idle) {
+    const lerp = 2.0 * dt;
+    const defaultAz = 0;
+    const defaultPol = Math.PI/2 - (Math.PI/180)*30;
+    camAz = THREE.MathUtils.lerp(camAz, defaultAz, lerp);
+    camPol = THREE.MathUtils.lerp(camPol, defaultPol, lerp);
+  }
 
-  const currentAz = controls.getAzimuthalAngle();
-  const currentPol = controls.getPolarAngle();
-
-  // Desired rest pose (30° up, facing forward)
-  const deg = (d) => d * Math.PI / 180;
-  const defaultAzimuth = 0;
-  const defaultPolar   = Math.PI/2 - deg(30);
-
-  // Lerp towards defaults
-  const newAz = THREE.MathUtils.lerp(currentAz, defaultAzimuth, lerp);
-  const newPol = THREE.MathUtils.lerp(currentPol, defaultPolar, lerp);
-
-  // Apply spherical transform manually
+  // --- Apply spherical transform ---
   const radius = controls.getDistance ? controls.getDistance() : controls.minDistance;
-  const offset = new THREE.Vector3().setFromSphericalCoords(radius, newPol, newAz);
+  const offset = new THREE.Vector3().setFromSphericalCoords(radius, camPol, camAz);
   camera.position.copy(controls.target).add(offset);
-}
-
 
   controls.update();
 }
-
-
 
 // ---------- FX ----------
 const fade = new ScreenFade({ color: '#ffffff' });
