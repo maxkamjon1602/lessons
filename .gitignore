@@ -4,20 +4,25 @@
 
 lessons.code-workspace
 
+// Lesson content documentation
 lesson-plan
 lesson-plan.docx
 lesson-plan-custom
 lesson-plan-custom.docx
 
-11-lesson-plan.docx
-
+// Demo for personal testing only
 test.html
 
-updates-required.txt
-yt-banner-description.txt
-
+// Archives
 problems.zip
 lessons.zip
 
+// Text files
 updates.txt
 jump-options.txt
+updates-required.txt
+yt-banner-description.txt
+lesson-teaching-strategy.txt
+
+// Word documents
+11-lesson-plan.docx
