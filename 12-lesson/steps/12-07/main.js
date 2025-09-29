@@ -57,7 +57,17 @@ for (const h of hazards) scene.add(h);
 
 // ---------- Hero ----------
 const hero = new Character({ scene, checkpoints, platforms, hazards });
-const defaultSpawn = { x: -10, y: 1.0, z: 0 };
+// after creating `platforms` and before hero.respawn()
+const ground = platforms[0];
+const b = ground.userData.box;
+const halfH = hero.collider.height * 0.5;
+
+const defaultSpawn = {
+  x: b.min.x + 0.1,                 // a little inset from the left edge
+  y: b.max.y + halfH + 0.01,        // feet exactly on top
+  z: 0
+};
+// const defaultSpawn = { x: -10, y: 1.0, z: 0 };
 hero.setCheckpoint(defaultSpawn);
 hero.respawn();
 
@@ -74,6 +84,7 @@ addEventListener('keydown', (e) => {
     case 'ArrowRight': input.camRight = true; break;
     case 'ArrowUp':    input.camUp = true; break;
     case 'ArrowDown':  input.camDown = true; break;
+    case 'KeyJ' : hero.doAttack(); break;
   }
 });
 addEventListener('keyup', (e) => {
@@ -90,30 +101,28 @@ addEventListener('keyup', (e) => {
 });
 
 // ---------- Mouse for camera + fighting ----------
+// Mouse: left = attack (instant), right reserved
 let mouseDownLeft = false, mouseDownRight = false;
-let dragStart = { x: 0, y: 0 }, dragged = false;
 
 addEventListener('pointerdown', (e) => {
-  if (e.button === 0) { mouseDownLeft = true; dragStart = { x: e.clientX, y: e.clientY }; dragged = false; }
-  if (e.button === 2) { mouseDownRight = true; }
-}, { passive: true });
-
-addEventListener('pointermove', (e) => {
-  if (mouseDownLeft) {
-    const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
-    if (!dragged && (dx*dx + dy*dy) > 16) dragged = true; // >4px
+  if (e.button === 0) {           // left click
+    mouseDownLeft = true;
+    hero.doAttack();              // fire immediately (queue handles cooldown)
+    e.preventDefault();
   }
-}, { passive: true });
+  if (e.button === 2) {           // right click
+    mouseDownRight = true;
+    e.preventDefault();
+  }
+}, { passive: false });
 
 addEventListener('pointerup', (e) => {
-  if (e.button === 0) {
-    if (!dragged) hero.doAttack();  // click = attack
-    mouseDownLeft = false;
-  }
+  if (e.button === 0) mouseDownLeft = false;
   if (e.button === 2) mouseDownRight = false;
 }, { passive: true });
 
 addEventListener('contextmenu', (e) => e.preventDefault());
+
 
 // ---------- Debug ----------
 const label = document.createElement('div');

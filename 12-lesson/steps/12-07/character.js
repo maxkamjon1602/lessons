@@ -14,8 +14,8 @@ export class Character {
     });
 
     // Hollow Knight–style jump/grav
-    this.jumpStrength = 9.5;
-    this.gravityUp    = 14;
+    this.jumpStrength = 10.4;
+    this.gravityUp    = 17;
     this.gravityCut   = 26;
     this.gravityFall  = 34;
 
@@ -30,9 +30,9 @@ export class Character {
     // Horizontal
     this.maxSpeed    = 6.0;
     this.accelGround = 40.0;
-    this.accelAir    = 20.0;
+    this.accelAir    = 38.0;
     this.dampGround  = 12.0;
-    this.dampAir     = 1.0;
+    this.dampAir     = 2.0;
 
     // Respawn & checkpoints
     this.respawnPoint = { x: 0, y: 1.0, z: 0 };
@@ -59,8 +59,10 @@ export class Character {
     
     // --- Attack state ---
     this.attackCooldown = 0;
-    this.attackMax = 0.35;   // 0.35s per swing
+    this.attackMax = 0.28;       // a bit snappier
     this.attacking = false;
+    this.attackQueue = 0;        // how many clicks buffered
+    this.attackQueueMax = 3;     // cap so it can't explode
 
     // Debug attack hitbox
     const boxGeo = new THREE.BoxGeometry(1.2, 1.0, 0.5);
@@ -129,6 +131,13 @@ export class Character {
     if (right && !left)  a =  ax;
 
     let vx = vx0 + a * dt;
+
+    // air turn assist: if pushing opposite to current velocity in air, apply extra brake
+    if (!this.onGround && a !== 0 && Math.sign(vx0) !== Math.sign(a)) {
+      const turnBrake = 50.0;                      // strong instant counter
+      const brake = Math.min(Math.abs(vx0), turnBrake * dt) * Math.sign(vx0);
+      vx -= brake; // reduce old momentum quickly
+    }
 
     const damp = (this.onGround ? this.dampGround : this.dampAir);
     if (a === 0) {
@@ -320,9 +329,16 @@ if (!snapped) {
     this._lastVy = this.collider.velocity.y;
   }
 
-  // --- New attack method ---
-  doAttack() {
-    if (this.attackCooldown > 0) return;
+    // fire immediately if possible, otherwise queue it
+    doAttack() {
+      if (this.attackCooldown > 0) {
+        if (this.attackQueue < this.attackQueueMax) this.attackQueue++;
+        return;
+      }
+      this._fireAttack();
+    }
+
+    _fireAttack() {
     this.attacking = true;
     this.attackCooldown = this.attackMax;
 
@@ -378,6 +394,10 @@ if (!snapped) {
       if (this.attackCooldown <= 0) {
         this.attackCooldown = 0;
         this.attacking = false;
+        if (this.attackQueue > 0) {   // consume buffered clicks ASAP
+          this.attackQueue--;
+          this._fireAttack();
+        }
       }
     }
   }
