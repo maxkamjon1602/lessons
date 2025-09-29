@@ -263,32 +263,55 @@ export class Character {
       }
 
 
-      // --- platform top collision ---
-      const radius = this.collider.radius;
-      const feetPrev = prevY - half;
-      const feetNow  = this.collider.position.y - half;
-      const vy       = this.collider.velocity.y;
-      const eps      = 0.005;
+// --- robust platform top support (no jump-through) ---
+const radius = this.collider.radius;
+const feetPrev = prevY - half;
+const feetNow  = this.collider.position.y - half;
+const vy       = this.collider.velocity.y;
 
-      for (const p of this.platforms) {
-        const box = p.userData?.box; if (!box) continue;
-        const topY = box.max.y;
-        const minX = box.min.x - radius;
-        const maxX = box.max.x + radius;
-        const insideX = (this.collider.position.x >= minX) && (this.collider.position.x <= maxX);
+// tolerances
+const skin  = 0.02;  // glue-to-surface tolerance
+const penTol = 0.15; // forgiveness if slightly inside due to spawn/substep
 
-        const crossedFromAbove = insideX && (feetPrev > topY) && (feetNow <= topY);
-        const restingOnTop     = insideX && (Math.abs(feetNow - topY) <= eps) && (vy <= 0);
-        if (crossedFromAbove || restingOnTop) {
-          this.collider.position.y = topY + half;
-          this.collider.velocity.y = 0;
-          if (!this.onGround) this.coyoteTime = this.maxCoyote;
-          const wasAir = !this.onGround;
-          this.onGround = true;
-          if (wasAir && (vy < -6)) this.dust.trigger(this.collider.position.x, topY + 0.05, 0);
-          break;
-        }
-      }
+let snapped = false;
+for (const p of this.platforms) {
+  const box = p.userData?.box; if (!box) continue;
+
+  const topY = box.max.y;
+  const minX = box.min.x - radius;
+  const maxX = box.max.x + radius;
+  const insideX = (this.collider.position.x >= minX) && (this.collider.position.x <= maxX);
+  if (!insideX) continue;
+
+  // 1) Normal fall crossing
+  const crossedFromAbove = (feetPrev > topY + skin) && (feetNow <= topY + skin) && (vy <= 0);
+  // 2) Continuous support while walking along the surface
+  const resting = (Math.abs(feetNow - topY) <= skin + 1e-4) && (vy <= 0);
+  // 3) Slight penetration forgiveness (spawn/edge/substep)
+  const forgivingCatch = (feetNow <= topY + skin) && (feetPrev >= topY - penTol) && (vy <= 0);
+
+  if (crossedFromAbove || resting || forgivingCatch) {
+    this.collider.position.y = topY + half + 1e-4;
+    this.collider.velocity.y = 0;
+
+    if (!this.onGround) this.coyoteTime = this.maxCoyote;
+    const wasAir = !this.onGround;
+    this.onGround = true;
+
+    if (wasAir && (vy < -6)) this.dust.trigger(this.collider.position.x, topY + 0.05, 0);
+    snapped = true;
+    break;
+  }
+}
+
+if (!snapped) {
+  // didn’t land on any platform this frame → airborne
+  if (this.onGround) {
+    this.onGround = false;
+    this.coyoteTime = this.maxCoyote;
+  }
+}
+
     }
 
     // Sync mesh & flags

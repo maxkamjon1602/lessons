@@ -21,7 +21,7 @@ function makeBlock(x, baseY, w = 2, color = 0x90caf9, h = 0.4) {
 }
 
 const platforms = [
-  makeBlock(0, 0, 10, 0xb3e5fc, 0.3), // ground
+  makeBlock(0, 0, 30, 0xb3e5fc, 0.3), // ground
   makeBlock(5, 3, 2, 0x90caf9, 0.3),
   makeBlock(9, 5, 2, 0x90caf9, 0.3),
   makeBlock(13, 3, 2, 0x90caf9, 0.3),
@@ -29,6 +29,7 @@ const platforms = [
 
 const topYOf   = (b) => b.userData.box.max.y;
 const leftXOf  = (b) => b.userData.box.min.x;
+
 
 // ---------- Checkpoints ----------
 function makeCheckpoint(x, topY) {
