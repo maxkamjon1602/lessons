@@ -86,7 +86,13 @@ export class Character {
 
   // Input
   requestJump() { this._jumpQueued = true; this.bufferClock = this.bufferTime; this.jumpHeld = true; }
-  releaseJump() { this.jumpHeld = false; }
+  releaseJump() { 
+    this.jumpHeld = false;
+    // extra cut for very short taps
+    if (this.collider.velocity.y > 0) {
+      this.collider.velocity.y *= 0.6;
+    } 
+  }
 
   // Jump helpers
   tryConsumeJump() {
@@ -199,20 +205,7 @@ export class Character {
     const prevY = this.collider.position.y;
     const nextY = this.collider.position.y + this.collider.velocity.y * dt;    
     const half = this.collider.height * 0.5;
-    const groundY = 0.0 + half;
-
-    if (nextY - half <= 0.0) {
-      const impactVy = this.collider.velocity.y;
-      this.collider.position.y = groundY;
-      this.collider.velocity.y = 0;
-
-      if (!this.onGround) this.coyoteTime = this.maxCoyote;
-      this.onGround = true;
-
-      if (!this._wasOnGround && impactVy < -6) {
-        this.dust.trigger(this.collider.position.x, 0.05, 0);
-      }
-    } else {
+    {
       // integrate to nextY (airborne for now)
       this.collider.position.y = nextY;
       if (this.onGround) {

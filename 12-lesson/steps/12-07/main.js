@@ -89,22 +89,29 @@ addEventListener('keyup', (e) => {
 });
 
 // ---------- Mouse for camera + fighting ----------
-let mouseDownLeft = false;
-let mouseDownRight = false;
-addEventListener('mousedown', (e) => {
+let mouseDownLeft = false, mouseDownRight = false;
+let dragStart = { x: 0, y: 0 }, dragged = false;
+
+addEventListener('pointerdown', (e) => {
+  if (e.button === 0) { mouseDownLeft = true; dragStart = { x: e.clientX, y: e.clientY }; dragged = false; }
+  if (e.button === 2) { mouseDownRight = true; }
+}, { passive: true });
+
+addEventListener('pointermove', (e) => {
+  if (mouseDownLeft) {
+    const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+    if (!dragged && (dx*dx + dy*dy) > 16) dragged = true; // >4px
+  }
+}, { passive: true });
+
+addEventListener('pointerup', (e) => {
   if (e.button === 0) {
-    mouseDownLeft = true;
-    hero.doAttack();   // <-- NEW: trigger attack
+    if (!dragged) hero.doAttack();  // click = attack
+    mouseDownLeft = false;
   }
-  if (e.button === 2) {
-    mouseDownRight = true;
-    // reserved for future (secondary attack)
-  }
-});
-addEventListener('mouseup', (e) => {
-  if (e.button === 0) mouseDownLeft = false;
   if (e.button === 2) mouseDownRight = false;
-});
+}, { passive: true });
+
 addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ---------- Debug ----------
@@ -156,6 +163,13 @@ if (controls) {
   // const currentAz = controls.getAzimuthalAngle();
   // controls.rotateLeft(-currentAz);
   controls.update();
+}
+
+if (controls) {
+  controls.addEventListener('change', () => {
+    camAz  = controls.getAzimuthalAngle();
+    camPol = controls.getPolarAngle();
+  });
 }
 
 // Default 30° elevation, azimuth 0
@@ -287,6 +301,13 @@ onTick(() => {
 
   // Update camera
   updateCamera(dt);
+
+// fall out of level
+if (hero.mesh.position.y < -10) {
+  fade.flash(1, 80);
+  hero.respawn();
+}
+
 
   // Debug
   label.textContent =
