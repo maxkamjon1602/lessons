@@ -148,11 +148,10 @@ export class Character {
     const topY    = this.collider.position.y + half;
     // (rest of your collision code unchanged)
 
-    for (const obj of [...this.platforms, ...this.hazards]) {
-obj.userData?.updateAABB?.();
-const box = obj.userData?.box;
-if (!box) continue;
-
+    for (const obj of this.platforms) {
+      obj.userData?.updateAABB?.();
+      const box = obj.userData?.box;
+      if (!box) continue;
 
       // vertical overlap check
       const margin = 0.002;

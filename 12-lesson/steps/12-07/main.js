@@ -2,7 +2,7 @@ import { scene, onTick, camera, controls } from '@core/shared/env.js';
 import * as THREE from 'three';
 import { Character } from './character.js';
 import { ScreenFade } from './screenfade.js';
-import { makeSpikePit, hitsHazard } from './hazard.js';
+import { makeSpikePit } from './hazard.js';
 import { saveCheckpoint } from './save.js';
 
 // ---------- Platforms (thin) ----------
@@ -218,6 +218,24 @@ function updateCamera(dt) {
   controls.update();
 }
 
+// Kill if character capsule touches a hazard's collider box
+function capsuleTouchesBox(hero, box, radiusScale = 0.9) {
+  const r = (hero.collider?.radius ?? 0.4) * radiusScale;
+  const half = hero.collider?.height ? hero.collider.height * 0.5 : 0.8;
+
+  // expand the box by radius in X and a tiny amount in Y
+  const minX = box.min.x - r, maxX = box.max.x + r;
+  const minY = box.min.y - r * 0.6, maxY = box.max.y + r * 0.6;
+
+  const cx = hero.collider.position.x;
+  const topY = hero.collider.position.y + half;
+  const botY = hero.collider.position.y - half;
+
+  const overlapX = (cx >= minX) && (cx <= maxX);
+  const overlapY = !(topY < minY || botY > maxY);
+  return overlapX && overlapY;
+}
+
 // ---------- FX ----------
 const fade = new ScreenFade({ color: '#ffffff' });
 let shakeUntil = 0;
@@ -251,12 +269,19 @@ onTick(() => {
     }
   }
 
-  // Hazard check uses feet, not center
-  const feetPoint = new THREE.Vector3(hero.mesh.position.x, hero.bottomY + 0.05, hero.mesh.position.z);
-  const hazardHit = (hero.invuln <= 0) && hitsHazard(feetPoint, hazards, 0.25);
+  // Kill on any capsule touch against each hazard's collider box
+  let hazardHit = false;
+  if (hero.invuln <= 0) {
+    for (const h of hazards) {
+      h.userData?.updateAABB?.(); // refresh boxes if provided
+      const killBox = h.userData?.box || h.userData?.aabb;
+      if (!killBox) continue;
+      if (capsuleTouchesBox(hero, killBox)) { hazardHit = true; break; }
+    }
+  }
   if (hazardHit) {
-    fade.flash(1, 120);    // white flash
-    addShake(300);         // shake for 0.3s
+    fade.flash(1, 120);
+    addShake(300);
     hero.respawn();
   }
 
