@@ -71,6 +71,8 @@ const defaultSpawn = {
 hero.setCheckpoint(defaultSpawn);
 hero.respawn();
 
+function pressAttack() { hero.doAttack(); }
+
 // ---------- Input ----------
 const input = { left: false, right: false, jumpHeld: false, camLeft: false, camRight: false, camUp: false, camDown: false };
 addEventListener('keydown', (e) => {
@@ -84,7 +86,7 @@ addEventListener('keydown', (e) => {
     case 'ArrowRight': input.camRight = true; break;
     case 'ArrowUp':    input.camUp = true; break;
     case 'ArrowDown':  input.camDown = true; break;
-    case 'KeyJ' : hero.doAttack(); break;
+    case 'KeyJ' : pressAttack(); break;
   }
 });
 addEventListener('keyup', (e) => {
@@ -101,31 +103,57 @@ addEventListener('keyup', (e) => {
 });
 
 // ---------- Mouse for camera + fighting ----------
-// Mouse: left = attack (instant), right reserved
-let mouseDownLeft = false, mouseDownRight = false;
+// Track for camera-idle logic (if you use those flags)
+// ---------- Mouse / touch -> ATTACK (same path as KeyJ) ----------
+let mouseDownLeft = false, mouseDownRight = false; // still used by camera-idle logic
 
-addEventListener('pointerdown', (e) => {
-  if (e.button === 0) {           // left click
-    mouseDownLeft = true;
-    hero.doAttack();              // fire immediately (queue handles cooldown)
-    e.preventDefault();
-  }
-  if (e.button === 2) {           // right click
-    mouseDownRight = true;
-    e.preventDefault();
-  }
-}, { passive: false });
+// Fire from same function used by KeyJ
+const attackFromPointer = (e) => {
+  // Ignore RMB only; EVERYTHING else (LMB, touch, synthetic click) attacks
+  if (e.type !== 'touchstart' && e.button === 2) return;
+  pressAttack();
+  if (e.cancelable) e.preventDefault();
+};
 
-addEventListener('pointerup', (e) => {
-  if (e.button === 0) mouseDownLeft = false;
-  if (e.button === 2) mouseDownRight = false;
-}, { passive: true });
+// Track button state for your idle camera logic
+const onPD = (e) => { if (e.button === 0) mouseDownLeft = true;  if (e.button === 2) mouseDownRight = true; };
+const onPU = (e) => { if (e.button === 0) mouseDownLeft = false; if (e.button === 2) mouseDownRight = false; };
 
-addEventListener('contextmenu', (e) => e.preventDefault());
+// Bind in CAPTURE phase so nothing (including OrbitControls) can swallow it
+const bindTargets = [window, document];
+if (controls && controls.domElement) bindTargets.push(controls.domElement);
+
+for (const t of bindTargets) {
+  t.addEventListener('pointerdown', attackFromPointer, { capture: true, passive: false });
+  t.addEventListener('mousedown',   attackFromPointer, { capture: true, passive: false });
+  t.addEventListener('click',       attackFromPointer, { capture: true, passive: false });
+  t.addEventListener('touchstart',  attackFromPointer, { capture: true, passive: false });
+
+  t.addEventListener('pointerdown', onPD, { capture: true });
+  t.addEventListener('pointerup',   onPU, { capture: true });
+}
+
+// Disable left-click on OrbitControls so it never competes with attack
+if (controls) {
+  controls.mouseButtons = {
+    LEFT: null,          // no action on LMB
+    MIDDLE: null,
+    RIGHT: THREE.MOUSE.ROTATE
+  };
+  controls.touches = {
+    ONE: THREE.TOUCH.NONE,
+    TWO: THREE.TOUCH.DOLLY_PAN
+  };
+}
+
+// Keep context menu suppressed so RMB rotate is clean
+window.addEventListener('contextmenu', (e) => e.preventDefault(), { capture: true });
+
 
 
 // ---------- Debug ----------
 const label = document.createElement('div');
+label.style.pointerEvents = 'none';
 Object.assign(label.style, {
   position: 'fixed', bottom: '10px', left: '10px',
   color: 'black', background: 'rgba(255,255,255,0.85)',
@@ -162,18 +190,27 @@ if (controls) {
     hero.mesh.position.z
   );
 
-  // Initial offset: 30° elevation, *azimuth = 0* so camera.x === hero.x
+  // Initial offset: 30° elevation, azimuth 0
   const elev30 = deg(30);
-  const sph = new THREE.Spherical(radius, Math.PI/2 - elev30, 0); // polar, azimuth
+  const sph = new THREE.Spherical(radius, Math.PI/2 - elev30, 0);
   const offset = new THREE.Vector3().setFromSpherical(sph);
   camera.position.copy(target).add(offset);
   controls.target.copy(target);
 
-  // Ensure azimuth is exactly zero (removes any tiny initial skew)
-  // const currentAz = controls.getAzimuthalAngle();
-  // controls.rotateLeft(-currentAz);
   controls.update();
+
+  // ✅ NEW: free left mouse for attack, only right mouse rotates
+  controls.mouseButtons = {
+    LEFT: null,
+    MIDDLE: null,
+    RIGHT: THREE.MOUSE.ROTATE
+  };
+  controls.touches = {
+    ONE: THREE.TOUCH.NONE,
+    TWO: THREE.TOUCH.DOLLY_PAN
+  };
 }
+
 
 if (controls) {
   controls.addEventListener('change', () => {
@@ -273,6 +310,13 @@ onTick(() => {
   last = now;
 
   for (const p of platforms) p.userData.box.setFromObject(p);
+
+ // before hero.update(dt, input);
+  // if (pendingAttack) {
+  //   pendingAttack = false;
+  //   hero.doAttack();   // Character's internal queue handles cooldown
+  // }
+
   hero.update(dt, input);
 
   // --- inside onTick, after hero.update(dt, input) ---

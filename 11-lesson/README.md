@@ -1,3 +1,9 @@
+## License
+This project is licensed under the **UZ Learn Try Personal Education License (UT-PEL) v1.0**.
+**Not** open source. **Personal self-learning only.** No redistribution, no public hosting, no derivatives, no commercial or instructional use, and no AI/data-mining. See [LICENSE](../LICENSE).
+
+---
+
 # Lesson 11 — 2.5D Platformer Kinematics (Steps 1–7)
 
 > **A precise, production-grade platformer micro-engine in vanilla Three.js**  
@@ -209,19 +215,6 @@ stateDiagram-v2
 
 ---
 
-## Troubleshooting
-
-| Symptom | Likely Cause | Fix |
-|---|---|---|
-| Player **clips** into walls | Wrong sweep radius/skin | Ensure `RADIUS = PLAYER_WIDTH/2`, `SKIN ≈ 0.02` |
-| Lands on steep walls | Slope test too generous | Check `n.y > 0.45` and `angle ≤ MAX_SLOPE_DEG` |
-| Gets stuck to one‑way from the side | Acceptance rules missing | Enforce “descending + not from below” |
-| Jitter while riding movers | Update order wrong | Move **movers → carry → collisions** before integrate |
-| Camera overshoots | Under‑damped spring | Use `DAMP = 2*sqrt(STIFF)` (critical) |
-| Drop‑through sometimes jumps | Not cancelling buffers | Clear **coyote+jump buffer** when dropping |
-
----
-
 ## Design Challenges (Try These)
 
 - **Variable Jump Height 2.0:** Scale `vy` by how long the button is held (read about coyote + buffers interaction).
@@ -254,7 +247,7 @@ stateDiagram-v2
 
 ## Screens & Snapshots
 
-> If you’re viewing this on GitHub, the images live in `lesson11_readme_assets/`.
+> If you’re viewing this on GitHub, the images live in `assets-readme/`.
 
 - Architecture overview: `diagram_architecture.png`  
 - Dead‑zone explanation: `diagram_dead_zone.png`  
@@ -264,6 +257,27 @@ stateDiagram-v2
 
 ---
 
-### License
+## Troubleshooting
 
-Use, modify, and ship in your own projects. No attribution required — but a ⭐ makes my day!
+| Symptom | Likely Cause | Fix |
+|---|---|---|
+| Player **clips** into walls | Wrong sweep radius/skin | Ensure `RADIUS = PLAYER_WIDTH/2`, `SKIN ≈ 0.02` |
+| Lands on steep walls | Slope test too generous | Check `n.y > 0.45` and `angle ≤ MAX_SLOPE_DEG` |
+| Gets stuck to one‑way from the side | Acceptance rules missing | Enforce “descending + not from below” |
+| Jitter while riding movers | Update order wrong | Move **movers → carry → collisions** before integrate |
+| Camera overshoots | Under‑damped spring | Use `DAMP = 2*sqrt(STIFF)` (critical) |
+| Drop‑through sometimes jumps | Not cancelling buffers | Clear **coyote+jump buffer** when dropping |
+
+
+— Updated 2025-09-29 20:11 UTC
+
+Made with ❤️ for your personal development in 3D journey.
+Happy rendering!
+
+---
+
+## Trademark Notice
+
+**UZ LEARN TRY™** is the brand identity of this project.
+The name and materials are provided strictly for personal educational purposes.
+All rights reserved.
