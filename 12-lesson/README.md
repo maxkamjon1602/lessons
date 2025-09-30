@@ -19,6 +19,17 @@ This project is licensed under the **UZ Learn Try Personal Education License (UT
 - **Checkpoints:** Glowing spheres, emissive feedback, respawn with invulnerability.  
 - **FX Polish:** Dust bursts, screen flash, camera shake.  
 
+## 🖼 Demo Overview
+
+![Checkpoint](lesson12_images/checkpoint.png)  
+*A glowing checkpoint that saves respawn position.*
+
+![Hazard](lesson12_images/hazard.png)  
+*Spikes that respawn the player upon touch.*
+
+![Combo](lesson12_images/combo.png)  
+*3-hit attack combo chain demonstration.*
+
 ---
 
 ## Quick Start
@@ -67,59 +78,27 @@ step-07.html   Polish: dust, flash, shake
 ![Lesson12 Architecture](./assets-readme/diagram_architecture.png)
 
 ---
+## 🔑 Key Concepts
 
-## Key Systems
+| Concept | Explanation |
+|---------|-------------|
+| **Checkpoints** | Save respawn points when touched; glow & scale effect shows activation. |
+| **Hazards** | Spike pits with invisible collider boxes – touching them resets hero to last checkpoint. |
+| **3-Hit Combo** | Attack chaining system with short cooldowns (0.35s), supports spamming with animation FX. |
+| **Camera Tracking** | Always glued to hero with arrow key + mouse drag support, reset when idle. |
+| **Platform Collisions** | Ground platforms block from above only (no jump-through for global ground). |
+| **Dust FX** | Visual feedback when landing or attacking. |
+| **Coyote Time** | Short grace period (0.12s) after leaving a platform still allows a jump. |
 
-### 1. Combat (3-Hit Combo)
+## 🚀 Step-by-Step Breakdown
 
-- **Facing-based hitbox:** Always spawns in front of player along X.  
-- **Combo window:** Each attack must be timed during cooldown to chain.  
-- **Hitbox Debug Mesh:** Red transparent box (toggle in code).  
-
-![Combo Chain](./assets-readme/chart_combo_timing.png)
-
-### 2. Hazards
-
-- Solid, no jump-through.  
-- Kill player instantly when capsule touches spike mesh AABB.  
-- On death:  
-  - White **screen flash**  
-  - Camera **shake**  
-  - Respawn at last checkpoint  
-
-![Hazard Pit](./assets-readme/diagram_hazard.png)
-
-### 3. Camera Rig
-
-- Fixed radius (10).  
-- Constrained azimuth (±45°) and pitch (−75° to +15°).  
-- Smooth reset to default angles when idle.  
-- Drag and arrow-key nudges both supported.  
-
-![Camera Rig](./assets-readme/diagram_camera.png)
-
-### 4. Checkpoints
-
-- Sphere with emissive glow.  
-- On contact:  
-  - Saves respawn point  
-  - Visual feedback (color shift, scaling pulse)  
-  - Respawn returns here with brief invulnerability  
-
----
-
-## Tuning Constants
-
-| Constant | Default | Notes |
-|---|---:|---|
-| `jumpStrength` | 9.5 | Launch speed |
-| `gravityUp` | 14 | While holding jump |
-| `gravityCut` | 26 | When releasing early |
-| `gravityFall` | 34 | Faster descent |
-| `attackMax` | 0.35 s | Attack duration per swing |
-| `maxSpeed` | 6.0 | Horizontal max speed |
-| `accelGround` | 40 | Acceleration on ground |
-| `accelAir` | 28 | Faster mid-air turn |
+1. **Platforms** – created using `makeBlock()`.  
+2. **Checkpoints** – glowing spheres; touching them sets respawn.  
+3. **Hazards** – spike pits built with cones + invisible collider.  
+4. **Camera** – follows hero, arrow keys/mouse drag to rotate.  
+5. **Combat** – left-click or `J` key triggers attacks.  
+6. **3-Hit Combo** – chaining attack states into a sequence.  
+7. **Final Polish** – dust FX, respawn flash, screen shake.
 
 ---
 
@@ -139,24 +118,30 @@ flowchart TD
 
 ---
 
-## Read More
+## 🛠 Troubleshooting
 
-- *Game Feel* by Steve Swink — Chapter on “Juice”.  
-- GDC talks on action combat.  
-- Three.js docs — `OrbitControls`, materials, shadows.  
-- Articles on input buffering and coyote time in platformers.  
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| Hero falls through ground | Collider logic not applied to global ground | Ensure `makeBlock` ground uses width ≥ 30 and `box.setFromObject()` called each frame |
+| Camera doesn’t follow hero | `updateCamera(dt)` not running | Verify `onTick()` calls `updateCamera(dt)` |
+| Attack doesn’t trigger while moving | Pointer event swallowed by controls | Use capture-phase listeners or fallback key (`J`) |
+| Hazards don’t kill hero | `group.userData.box` missing | Check `makeSpikePit` sets `userData.box` properly |
+| Checkpoint not saving | Distance threshold too small | Increase allowed `dx, dy` ranges (e.g. 0.6, 0.7) |
 
 ---
 
 ## Challenges
 
 - Extend combo to 4 hits with finisher animation.  
-- Add directional attacks (up-slash, down-stab).  
-- Air cancel into double-jump.  
 - Moving hazard variants.  
+- Give checkpoints a **sound effect** when activated.  
 
----
+## 📚 Extra Reading
 
+- [Three.js Docs – Object3D & Mesh](https://threejs.org/docs/)  
+- [Game Programming Patterns – State Machines](http://gameprogrammingpatterns.com/state.html)  
+- [Platformer Mechanics Explained](https://www.gamedeveloper.com/design/platformer-level-design)  
+- [Easing & Timing Functions](https://easings.net/)  
 — Updated 2025-09-29 20:11 UTC
 
 Made with ❤️ for the wonderful journey in a 3D world.
