@@ -100,7 +100,7 @@ step-07.html   Polish: dust, flash
 
 ## Flow of a Frame
 
-```mermaid
+```
 flowchart TD
   A[Input capture] --> B[Jump/Attack buffers]
   B --> C[Gravity integration]
