@@ -21,13 +21,13 @@ This project is licensed under the **UZ Learn Try Personal Education License (UT
 
 ## 🖼 Demo Overview
 
-![Checkpoint](lesson12_images/checkpoint.png)  
+![Checkpoint](assets-readme/checkpoint.png)  
 *A glowing checkpoint that saves respawn position.*
 
-![Hazard](lesson12_images/hazard.png)  
+![Hazard](assets-readme/hazard.png)  
 *Spikes that respawn the player upon touch.*
 
-![Combo](lesson12_images/combo.png)  
+![Combo](assets-readme/combo.png)  
 *3-hit attack combo chain demonstration.*
 
 ---
@@ -61,8 +61,6 @@ This project is licensed under the **UZ Learn Try Personal Education License (UT
 | **Checkpoints** | Auto-save respawn point |
 | **Hazards** | Instant respawn with flash + shake |
 
----
-
 ## Project Structure (Steps 1–7)
 
 ```
@@ -72,10 +70,8 @@ step-03.html   Combo chain (3 hits)
 step-04.html   Hazards (spike pits) kill on touch
 step-05.html   Respawn + checkpoints
 step-06.html   Camera rig with constraints
-step-07.html   Polish: dust, flash, shake
+step-07.html   Polish: dust, flash
 ```
-
-![Lesson12 Architecture](./assets-readme/diagram_architecture.png)
 
 ---
 ## 🔑 Key Concepts
