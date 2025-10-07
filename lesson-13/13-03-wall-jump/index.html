@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lesson 13 — Step 01: Advanced Baseline (from L12 · Step 07)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Local overlay styles (no core) -->
+  <link rel="stylesheet" href="./style.css" />
+  <!-- Import map: same Three.js version you used -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/examples/jsm/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="step-badge" data-lesson="13" data-step="01">Lesson 13 · Step 01</div>
+  <canvas id="app"></canvas>
+
+  <!-- Local env (was @core/shared/env.js) -->
+  <script type="module" src="./env.js"></script>
+  <!-- Your main (unchanged logic, imports fixed to local) -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
