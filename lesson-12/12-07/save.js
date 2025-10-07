@@ -1,4 +1,4 @@
-const KEY = 'lesson12_step06_checkpoint';
+const KEY = 'lesson12_step07_checkpoint';
 
 export function saveCheckpoint(vec3) {
   try {

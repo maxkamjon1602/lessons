@@ -21,13 +21,13 @@ This project is licensed under the **UZ Learn Try Personal Education License (UT
 
 ## 🖼 Demo Overview
 
-![Checkpoint](assets-readme/checkpoint.png)  
+![Checkpoint](readme-assets/checkpoint.png)  
 *A glowing checkpoint that saves respawn position.*
 
-![Hazard](assets-readme/hazard.png)  
+![Hazard](readme-assets/hazard.png)  
 *Spikes that respawn the player upon touch.*
 
-![Combo](assets-readme/combo.png)  
+![Combo](readme-assets/combo.png)  
 *3-hit attack combo chain demonstration.*
 
 ---
@@ -138,6 +138,8 @@ flowchart TD
 - [Game Programming Patterns – State Machines](http://gameprogrammingpatterns.com/state.html)  
 - [Platformer Mechanics Explained](https://www.gamedeveloper.com/design/platformer-level-design)  
 - [Easing & Timing Functions](https://easings.net/)  
+
+
 — Updated 2025-09-29 20:11 UTC
 
 Made with ❤️ for the wonderful journey in a 3D world.

@@ -1,0 +1,37 @@
+/* style.css - lesson 13 step 1 */
+/* Local overlay badge + full canvas */
+html, body { margin:0; height:100%; overflow:hidden; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+#app { display:block; width:100vw; height:100vh; }
+#step-badge{
+  position: fixed; top: 16px; left: 16px;
+  padding: 8px 12px; background: rgba(255,255,255,0.9); color: #111;
+  border: 1px solid rgba(17,17,17,0.1); border-radius: 999px; font-weight: 700; letter-spacing: .2px;
+  box-shadow: 0 6px 20px rgba(17,17,17,0.12); z-index: 10; user-select: none;
+}
+
+#hud{
+  position:fixed;top:12px;left:12px;padding:6px 10px;border-radius:10px; background:rgba(255,255,255,.06);backdrop-filter:blur(6px);font-size:14px; z-index:10
+}
+canvas{display:block;width:100vw;height:100vh}
+
+/* Step 01 HUD: Jump Timers */
+#jumpsHUD{
+  position: fixed; top: 64px; left: 16px; z-index: 12;
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(20,24,33,0.75); color: #e6e9ef;
+  border: 1px solid rgba(255,255,255,0.08);
+  font: 600 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  min-width: 220px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+#jumpsHUD .jh-row{ display:flex; align-items:center; gap:8px; margin:6px 0; }
+#jumpsHUD .jh-label{ width:56px; opacity:.8; }
+#jumpsHUD .jh-bar{ flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
+#jumpsHUD .jh-fill{ height:100%; width:0%; background:#3aa1ff; transition:width .06s linear; }
+#jumpsHUD .jh-val{ width:44px; text-align:right; opacity:.85; }
+#jumpsHUD .jh-note{ margin-top:6px; opacity:.9; font-weight:700; letter-spacing:.2px; }
+
+/* Flash colors by source */
+#jumpsHUD.flash-ground { box-shadow: 0 0 0 2px rgba(60,220,130,.6), 0 6px 20px rgba(0,0,0,.25); }
+#jumpsHUD.flash-coyote { box-shadow: 0 0 0 2px rgba(255,205,80,.6),  0 6px 20px rgba(0,0,0,.25); }
+#jumpsHUD.flash-unknown{ box-shadow: 0 0 0 2px rgba(255,80,80,.6),   0 6px 20px rgba(0,0,0,.25); }
