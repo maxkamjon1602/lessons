@@ -32,6 +32,12 @@ export class Character {
     this.maxAirJumps  = 1;  // allow one mid-air jump
     this.airJumpsUsed = 0;  // used air jumps since last landing
 
+    // Step 03: wall jump
+    this.wallNormal    = 0;    // -1: wall on left, +1: wall on right, 0: none
+    this.wallStickMax  = 0.15; // seconds of “stick” window after a side collision
+    this.wallStickTime = 0;    // countdown
+    this.wallJumpVx    = 6.5;  // horizontal impulse (world units / s)
+    this.wallJumpVyMul = 1.05; // multiply jumpStrength slightly on wall jump
 
     // Horizontal
     this.maxSpeed    = 6.0;
@@ -180,6 +186,7 @@ export class Character {
     const half = this.collider.height * 0.5;
     const bottomY = this.collider.position.y - half;
     const topY    = this.collider.position.y + half;
+    let hitWallThisFrame = false; // NEW: reset per frame
     // (rest of your collision code unchanged)
 
     for (const obj of this.platforms) {
@@ -202,9 +209,22 @@ export class Character {
       if (this.collider.position.x >= minX && this.collider.position.x <= maxX) {
         const distL = Math.abs(this.collider.position.x - minX);
         const distR = Math.abs(maxX - this.collider.position.x);
-        this.collider.position.x = (distL < distR) ? minX : maxX;
+
+        // Snap to nearest face
+        const snapToLeftFace = (distL < distR);
+        this.collider.position.x = snapToLeftFace ? minX : maxX;
         this.collider.velocity.x = 0;
+
+        // NEW: Step 03 — mark wall and start stick window
+        hitWallThisFrame = true;                       // <-- declare this (see step 2)
+        this.wallNormal    = snapToLeftFace ? (+1) : (-1); // +1 = wall on right, -1 = wall on left
+        this.wallStickTime = this.wallStickMax;
       }
+    }
+    // NEW: if no side hit this frame, decay the stick timer
+    if (!hitWallThisFrame) {
+      this.wallStickTime = Math.max(0, this.wallStickTime - dt);
+      if (this.wallStickTime === 0) this.wallNormal = 0;
     }
     this.mesh.position.x = this.collider.position.x;
   }
@@ -228,6 +248,9 @@ export class Character {
     this._jumpQueued = false;
     this.bufferClock = 0;
     this.coyoteTime = 0;
+
+    this.wallStickTime = 0;
+    this.wallNormal = 0;
   }
 
   // Vertical + ground
@@ -329,6 +352,9 @@ export class Character {
           if (!this.onGround) this.coyoteTime = this.maxCoyote;
           const wasAir = !this.onGround;
           this.onGround = true;
+          this.wallStickTime = 0;
+          this.wallNormal = 0;
+
           this.airJumpsUsed = 0; // Step 02: refresh mid-air allowance on landing
 
           if (wasAir && (vy < -6)) this.dust.trigger(this.collider.position.x, topY + 0.05, 0);
@@ -403,7 +429,38 @@ export class Character {
       if (this.bufferClock === 0) this._jumpQueued = false;
     }
 
-    this.tryConsumeJump();
+    // Step 03: Wall jump has PRIORITY over generic consumption
+    let consumedThisFrame = false;
+    if (this._jumpQueued && !this.onGround && this.coyoteTime <= 0 && this.wallStickTime > 0) {
+      const n = (this.wallNormal || (this.facingDir>=0?+1:-1)); // +1 = wall on right
+
+      // vertical impulse (slightly stronger than normal jump)
+      this.collider.velocity.y = this.jumpStrength * this.wallJumpVyMul;
+      // horizontal impulse away from wall
+      this.collider.velocity.x = -n * this.wallJumpVx;
+
+      // consume intent & stick; do NOT touch airJumpsUsed here
+      this._jumpQueued   = false;
+      this.bufferClock   = 0;
+      this.coyoteTime    = 0;
+      this.wallStickTime = 0;
+      this.onGround      = false;
+
+      // flip facing away from wall (optional)
+      this.facingDir = (n > 0) ? -1 : 1;
+
+      // HUD flash
+      window.dispatchEvent(new CustomEvent('jump-source', { detail: { source:'wall', buffered:false } }));
+
+      if (this.dust) this.dust.trigger(this.collider.position.x, this.collider.position.y - 0.05, 0);
+      consumedThisFrame = true;
+    }
+
+    // If no wall jump happened, try ground/coyote/air jump consumption
+    if (!consumedThisFrame) {
+      this.tryConsumeJump();
+    }
+
     this.resolveGroundAndIntegrate(dt);
     this.integrateHorizontal(dt, input);
     this.dust.update(dt);

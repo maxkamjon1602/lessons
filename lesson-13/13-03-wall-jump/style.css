@@ -37,3 +37,4 @@ canvas{display:block;width:100vw;height:100vh}
 #jumpsHUD.flash-unknown{ box-shadow: 0 0 0 2px rgba(255,80,80,.6),   0 6px 20px rgba(0,0,0,.25); }
 
 #jumpsHUD.flash-air { box-shadow: 0 0 0 2px rgba(80,160,255,.6), 0 6px 20px rgba(0,0,0,.25); }
+#jumpsHUD.flash-wall { box-shadow: 0 0 0 2px rgba(120,200,255,.6), 0 6px 20px rgba(0,0,0,.25); }

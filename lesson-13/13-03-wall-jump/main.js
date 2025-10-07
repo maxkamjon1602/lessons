@@ -27,6 +27,7 @@ const platforms = [
   makeBlock(5, 3, 2, 0x90caf9, 0.3),
   makeBlock(9, 5, 2, 0x90caf9, 0.3),
   makeBlock(13, 3, 2, 0x90caf9, 0.3),
+  makeBlock(1, 1, 0.5, 0xffc000, 3)
 ];
 
 const topYOf   = (b) => b.userData.box.max.y;
