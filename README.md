@@ -247,6 +247,4 @@ Copyright (c) 2025 UZ Learn Try. All rights reserved.
 
 ## Trademark Notice
 
-**UZ LEARN TRY™** is the brand identity of this project.  
-The name and materials are provided strictly for personal educational purposes.  
-All rights reserved.
+**UZ LEARN TRY™** is the brand identity of this project. The name and materials are provided strictly for personal educational purposes. All rights reserved.
